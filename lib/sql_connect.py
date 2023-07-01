@@ -1,5 +1,6 @@
 import datetime
 import os
+import time
 from hashlib import sha256
 
 from fastapi_asyncpg import configure_asyncpg
@@ -26,14 +27,14 @@ async def create_all_users_table(db):
     await db.execute(f'''CREATE TABLE IF NOT EXISTS all_users (
  user_id SERIAL PRIMARY KEY,
  phone BIGINT UNIQUE DEFAULT 0,
- email TEXT UNIQUE DEFAULT '0',
+ email TEXT DEFAULT '0',
  name TEXT DEFAULT '0',
  middle_name TEXT DEFAULT '0',
  surname TEXT DEFAULT '0',
  image_link TEXT DEFAULT '0',
  description TEXT DEFAULT '0',
  lang TEXT DEFAULT 'en',
- status TEXT DEFAULT 'user',
+ status TEXT DEFAULT 'active',
  push TEXT DEFAULT '0',
  last_active BIGINT DEFAULT 0,
  create_date BIGINT DEFAULT 0)''')
@@ -187,7 +188,8 @@ async def msg_to_user(db: Depends, user_id: int, msg_type: str, title: str, shor
     now = datetime.datetime.now()
     data = await db.fetch(f"INSERT INTO message_line (msg_type, title, text, description, from_id, to_id, "
                           f"user_type, create_date) "
-                          f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT DO NOTHING RETURNING id;", msg_type, title,
+                          f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT DO NOTHING RETURNING id;", msg_type,
+                          title,
                           short_text, description, from_id, user_id, 'user', now)
     return data
 
@@ -330,7 +332,7 @@ async def read_job_app_msg(db: Depends, order_id: int, ):
 
 
 # получаем все новые сообщения для пользователя с id
-async def check_msg_job_app(db: Depends, order_id: int, user_id: int,):
+async def check_msg_job_app(db: Depends, order_id: int, user_id: int, ):
     data = await db.fetch(f"SELECT * FROM message_line "
                           f"WHERE msg_id=$1 AND msg_type='job_application' AND from_id=$2 ORDER BY id DESC;",
                           order_id, user_id)
@@ -424,14 +426,29 @@ async def update_order(db: Depends, order_id: int, city: str, street: str, house
 
 
 # Создаем новую таблицу
-async def update_user(db: Depends, name: str, phone: int, email: str, description: str, lang: str, city: str,
-                      house: str,
-                      street: str, latitudes: float, longitudes: float, status: str, range: int, user_id: int):
-    user_id = await db.fetch(f"UPDATE all_users SET name=$1, phone=$2, email=$3, description=$4, lang=$5, city=$6, "
-                             f"street=$7, house=$8, latitudes=$9, longitudes=$10, status=$11, range=$12 WHERE "
-                             f"user_id=$13;",
-                             name, phone, email, description, lang, city, street, house, latitudes, longitudes,
-                             status, range, user_id)
+async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang: str, image_link: str, push: str,
+                      user_id: int):
+    if name == '0' and surname == '0' and midl_name == '0' and lang == '0' and image_link == '0' \
+            and push == '0':
+        return user_id
+    if name != '0':
+        await db.fetch(f"UPDATE all_users SET name=$1 WHERE user_id=$2;",
+                       name, user_id)
+    if surname != '0':
+        await db.fetch(f"UPDATE all_users SET surname=$1 WHERE user_id=$2;",
+                       surname, user_id)
+    if midl_name != '0':
+        await db.fetch(f"UPDATE all_users SET middle_name=$1 WHERE user_id=$2;",
+                       midl_name, user_id)
+    if lang != '0':
+        await db.fetch(f"UPDATE all_users SET lang=$1 WHERE user_id=$2;",
+                       lang, user_id)
+    if image_link != '0':
+        await db.fetch(f"UPDATE all_users SET image_link=$1 WHERE user_id=$2;",
+                       image_link, user_id)
+    if push != '0':
+        await db.fetch(f"UPDATE all_users SET push=$1 WHERE user_id=$2;",
+                       push, user_id)
     return user_id
 
 
@@ -465,7 +482,7 @@ async def update_msg(db: Depends, name: str, order_id: int, user_id: int, data):
 async def update_user_active(db: Depends, user_id: int):
     now = datetime.datetime.now()
     await db.fetch(f"UPDATE all_users SET last_active=$1 WHERE user_id=$2;",
-                   now, user_id)
+                   int(time.mktime(now.timetuple())), user_id)
 
 
 # Обновляем информацию

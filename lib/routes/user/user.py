@@ -28,8 +28,10 @@ async def initialization(connect):
 async def new_user(name: str, surname: str, midl_name: str, phone: int, lang: str, image_link: str,
                    db=Depends(data_b.connection)):
     """Create new user in server.
-    name: users name from Facebook or name of company\n
-    surname: users name from Facebook or name of company\n
+    name: users name\n
+    midl_name:  users midl name\n
+    surname: users midl surname\n
+    phone: example 375294322114\n
     image_link: get from facebook API\n
     lang: users app Language can be: ru, en"""
 
@@ -72,8 +74,8 @@ async def new_user(name: str, surname: str, midl_name: str, phone: int, lang: st
 
 @app.get(path='/user', tags=['User'], responses=get_me_res)
 async def get_user_information(access_token: str, db=Depends(data_b.connection), user_id: int = 0):
-    """Here you can check your username and password. Get users information.
-    access_token: This is access auth token. You can get it when create account, login or """
+    """Here you can check your username and password. Get users information.\n
+    access_token: This is access auth token. You can get it when create account, login"""
     owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not owner_id:
         return Response(content="bad access token",
@@ -97,34 +99,16 @@ async def get_user_information(access_token: str, db=Depends(data_b.connection),
 
 
 @app.put(path='/user', tags=['User'], responses=update_user_res)
-async def update_user_information(name: str, phone: int, email: str, description: str, lang: str, city: str,
-                                  street: str, house: str, latitudes: float, longitudes: float, status: str, range: int,
-                                  access_token: str,
+async def update_user_information(access_token: str, name: str = '0', surname: str = '0', midl_name: str = '0',
+                                  lang: str = '0', image_link: str = '0', push: str = '0',
                                   db=Depends(data_b.connection)):
-    """Update user's information.
+    """Update user's information.\n
 
     name: users name from Facebook or name of company\n
     phone: only numbers\n
-    email: get from facebook API\n
     description: users account description\n
     status: can be customer and worker\n
-    lang: users app Language can be: ru, en, heb\n\n
-    range: search range in meters
-    Personal home/work address\n
-    city: home/work city\n
-    street: home/work street\n
-    house: home/work house number can include / or letters\n
-    latitudes: (Широта) of home/work address\n
-    longitudes: (Долгота) of home/work address\n"""
-
-    if status != 'customer' and status != 'worker':
-        return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
-                            content={"ok": False,
-                                     'description': 'Bad users status', })
-    if lang != 'ru' and lang != 'en' and lang != 'heb':
-        return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
-                            content={"ok": False,
-                                     'description': 'Bad pick language', })
+    lang: users app Language can be: ru, en, heb\n"""
 
     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not user_id:
@@ -132,108 +116,30 @@ async def update_user_information(name: str, phone: int, email: str, description
                                      'description': "bad access token"},
                             status_code=_status.HTTP_401_UNAUTHORIZED)
 
-    user_status = await conn.read_data(db=db, name='status', table='all_users', id_name='user_id',
-                                       id_data=user_id[0][0])
-    if user_status:
-        if status != user_status[0][0]:
-            status = f'{status}_checking'
-
-    await conn.update_user(db=db, name=name, phone=phone, email=email, description=description, lang=lang, city=city,
-                           street=street, house=house, latitudes=latitudes, longitudes=longitudes,
-                           status=status, range=range, user_id=user_id[0][0])
+    await conn.update_user(db=db, name=name, surname=surname, midl_name=midl_name, image_link=image_link, lang=lang,
+                           push=push, user_id=user_id[0][0])
     return JSONResponse(content={"ok": True,
                                  'desc': 'all users information updated'},
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.put(path='/image_link', tags=['User'], responses=update_user_res)
-async def update_image_link(image_link: str, access_token: str, db=Depends(data_b.connection)):
-    """Update user's image_link.
+@app.delete(path='/user', tags=['User'], responses=update_user_res)
+async def delete_user(access_token: str, db=Depends(data_b.connection)):
+    """Delete all user information.\n
 
-    image_link: get from facebook API\n
-    access_token: This is access auth token. You can get it when create account, login or\n
-    """
+    access_token: This is access auth token. You can get it when create account, login"""
 
-    my_id = await conn.get_token(db=db, token_type='access', token=access_token)
-    if not my_id:
-        return JSONResponse(content={"ok": False, "description": "bad access token"},
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return JSONResponse(content={"ok": False,
+                                     'description': "bad access token"},
                             status_code=_status.HTTP_401_UNAUTHORIZED)
 
-    await conn.update_data(db=db, name='image_link', data=image_link, id_name='user_id', id_data=my_id[0][0],
-                           table='all_users')
+    await conn.update_data(db=db, table='all_users', name='status', data='delete', id_name='user_id',
+                           id_data=user_id[0][0])
+    await conn.delete_all_tokens(db=db, user_id=user_id[0][0])
     return JSONResponse(content={"ok": True,
                                  'desc': 'all users information updated'},
-                        status_code=_status.HTTP_200_OK,
-                        headers={'content-type': 'application/json; charset=utf-8'})
-
-
-@app.put(path='/user_lang', tags=['User'], responses=update_user_res)
-async def update_language(lang: str, access_token: str, db=Depends(data_b.connection)):
-    """Update user's language.
-
-    lang: can be ru, en, he\n
-    access_token: This is access auth token. You can get it when create account, login or\n
-    """
-
-    my_id = await conn.get_token(db=db, token_type='access', token=access_token)
-    if not my_id:
-        return JSONResponse(content={"ok": False, "description": "bad access token"},
-                            status_code=_status.HTTP_401_UNAUTHORIZED)
-
-    if lang not in ('ru', 'en', 'he'):
-        return JSONResponse(content={"ok": False, "description": "language cod not valid"},
-                            status_code=_status.HTTP_400_BAD_REQUEST)
-
-    await conn.update_data(db=db, name='lang', data=lang, id_name='user_id', id_data=my_id[0][0],
-                           table='all_users')
-    return JSONResponse(content={"ok": True,
-                                 'desc': 'all users information updated'},
-                        status_code=_status.HTTP_200_OK,
-                        headers={'content-type': 'application/json; charset=utf-8'})
-
-
-@app.put(path='/user_geo', tags=['User'], responses=update_user_res)
-async def update_users_geo_position(latitude: float, longitude: float, access_token: str,
-                                    db=Depends(data_b.connection)):
-    """Update user's geo latitude and longitude.
-
-    latitude: geo position latitude\n
-    longitude: geo position longitude\n
-    access_token: This is access auth token. You can get it when create account, login or\n
-    """
-
-    my_id = await conn.get_token(db=db, token_type='access', token=access_token)
-    if not my_id:
-        return JSONResponse(content={"ok": False, "description": "bad access token"},
-                            status_code=_status.HTTP_401_UNAUTHORIZED)
-
-    await conn.update_data(db=db, name='latitudes', data=latitude, id_name='user_id', id_data=my_id[0][0],
-                           table='all_users')
-    await conn.update_data(db=db, name='longitudes', data=longitude, id_name='user_id', id_data=my_id[0][0],
-                           table='all_users')
-    return JSONResponse(content={"ok": True,
-                                 'desc': 'all users information updated'},
-                        status_code=_status.HTTP_200_OK,
-                        headers={'content-type': 'application/json; charset=utf-8'})
-
-
-@app.get(path='/get_user_by_id', tags=['User'], responses=get_me_res)
-async def get_user_by_id(user_id: int, access_token: str, db=Depends(data_b.connection), ):
-    """Return user with user_id.\n
-    access_token: This is access auth token. You can get it when create account, login or """
-    my_id = await conn.get_token(db=db, token_type='access', token=access_token)
-    if not my_id:
-        return JSONResponse(content={"ok": False, "description": "bad access token"},
-                            status_code=_status.HTTP_401_UNAUTHORIZED)
-    user_data = await conn.read_data(db=db, name='*', table='all_users',
-                                     id_name='user_id', id_data=user_id)
-    if not user_data:
-        return JSONResponse(content={"ok": False, "description": "no user in database"},
-                            status_code=_status.HTTP_400_BAD_REQUEST)
-    user = User(user_data[0])
-    return JSONResponse(content={"ok": True,
-                                 'user': user.get_user_json(),
-                                 },
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})

@@ -1,5 +1,6 @@
 import datetime
 import os
+import time
 
 import starlette.status as _status
 from fastapi import Depends
@@ -34,39 +35,29 @@ async def create_new_access_token(refresh_token: str, db=Depends(data_b.connecti
                                      'description': "bad refresh token, please login"},
                             status_code=_status.HTTP_401_UNAUTHORIZED)
     await conn.delete_old_tokens(db=db)
+    now = datetime.datetime.now()
+    less_3 = now - datetime.timedelta(days=3)
+    if user_id[0][1] < int(time.mktime(less_3.timetuple())):
+        refresh = await conn.create_token(db=db, user_id=user_id[0][0], token_type='refresh')
+        refresh_token = refresh[0][0]
     access = await conn.create_token(db=db, user_id=user_id[0][0], token_type='access')
     await conn.update_user_active(db=db, user_id=user_id[0][0])
     return {"ok": True,
             'user_id': user_id[0][0],
-            'access_token': access[0][0]}
+            'access_token': access[0][0],
+            'refresh_token': refresh_token}
 
 
 @app.get(path='/login', tags=['Auth'], responses=login_get_res)
-async def login_user(email: str, auth_type: str, auth_id: int, access_token: str,
+async def login_user(phone: int, auth_type: str, auth_id: int, access_token: str,
                      db=Depends(data_b.connection)):
     """Login user in service by fb or google"""
-    user_data = await conn.read_data(db=db, name='*', table='all_users', id_name='email', id_data=email)
+    user_data = await conn.read_data(db=db, name='*', table='all_users', id_name='phone', id_data=phone)
     if not user_data:
         return JSONResponse(content={"ok": True,
                                      'description': 'This email is not in database', },
                             status_code=_status.HTTP_200_OK,
                             headers={'content-type': 'application/json; charset=utf-8'})
-
-    if auth_type == 'fb':
-
-        if not await user_fb_check_auth(access_token, user_id=auth_id, email=email):
-            return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
-                                content={"ok": False,
-                                         'description': 'Bad auth_id or access_token', })
-    elif auth_type == 'google':
-        if not user_google_check_auth(access_token=access_token, email=email):
-            return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
-                                content={"ok": False,
-                                         'description': 'Bad auth_id or access_token', })
-    else:
-        return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
-                            content={"ok": False,
-                                     'description': 'The selected auth type is not supported', })
 
     await conn.update_data(db=db, table='all_users', name='auth_type', id_name='user_id', id_data=user_data[0][0],
                            data=auth_type)
