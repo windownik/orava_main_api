@@ -26,11 +26,8 @@ def custom_openapi():
             {'name': 'Auth', 'description': "Auth user methods in server"},
             {'name': "User", 'description': "User's information. Checking login and password"},
             {'name': "Orders", 'description': "Work with orders in service"},
-            {'name': "Message", 'description': "All routes about moder message line"},
             {'name': "For all", 'description': "Routes for all users"},
-            {'name': "Work", 'description': "All about users work and work types"},
-            {'name': "Admin users", 'description': "All admins routes for work with users"},
-
+            {'name': "Push", 'description': "All about push notifications"}
         ]
     )
     app.openapi_schema = openapi_schema
