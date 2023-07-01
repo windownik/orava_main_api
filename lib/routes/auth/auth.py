@@ -134,7 +134,6 @@ async def check_email(email: str, db=Depends(data_b.connection), ):
                             status_code=_status.HTTP_200_OK,
                             headers={'content-type': 'application/json; charset=utf-8'})
     return JSONResponse(content={"ok": False,
-                                 "auth_type": user_data[0]["auth_type"],
                                  'description': 'This email is in database', },
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
@@ -152,7 +151,6 @@ async def check_email(phone: int, db=Depends(data_b.connection), ):
                             status_code=_status.HTTP_200_OK,
                             headers={'content-type': 'application/json; charset=utf-8'})
     return JSONResponse(content={"ok": False,
-                                 "auth_type": user_data[0]["auth_type"],
                                  'description': 'This email is in database', },
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
