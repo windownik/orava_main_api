@@ -4,6 +4,7 @@ services:
   api:
     build: .
     environment:
+      DATABASE_NAME: "orava"
       IP_SERVER: "45.82.68.203"
       PORT_SERVER: 10020
 

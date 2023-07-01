@@ -1,11 +1,12 @@
+import datetime
 import os
+import time
 
 import starlette.status as _status
 from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
-from lib.check_access_fb import user_fb_check_auth, user_google_check_auth
 from lib.db_objects import User
 from lib.response_examples import *
 from lib.sql_connect import data_b, app
@@ -24,104 +25,72 @@ async def initialization(connect):
 
 
 @app.post(path='/user', tags=['User'], responses=create_user_res)
-async def new_user(name: str, phone: int, email: str, auth_type: str, auth_id: int, description: str, lang: str,
-                   city: str, street: str, house: str, latitudes: float, longitudes: float, status: str,
-                   image_link: str, access_token: str, db=Depends(data_b.connection)):
+async def new_user(name: str, surname: str, midl_name: str, phone: int, lang: str, image_link: str,
+                   db=Depends(data_b.connection)):
     """Create new user in server.
     name: users name from Facebook or name of company\n
-    phone: only numbers\n
-    email: get from facebook API\n
+    surname: users name from Facebook or name of company\n
     image_link: get from facebook API\n
-    auth_type: at start version can be: fb, google, twit\n
-    auth_id: users id in Facebook\n
-    description: users account description\n
-    status: can be customer and worker\n
-    lang: users app Language can be: ru, en, heb\n\n
-    Personal home/work address\n
-    city: home/work city\n
-    street: home/work street\n
-    house: home/work house number can include / or letters\n
-    latitudes: (Широта) of home/work address\n
-    longitudes: (Долгота) of home/work address\n
-    access_token: Facebook access token"""
+    lang: users app Language can be: ru, en"""
 
-    if status != 'customer' and status != 'worker':
-        return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
-                            content={"ok": False,
-                                     'description': 'Bad users status', })
-    if lang != 'ru' and lang != 'en' and lang != 'heb':
+    if lang != 'ru' and lang != 'en':
         return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
                             content={"ok": False,
                                      'description': 'Bad pick language', })
-
+    now = datetime.datetime.now()
     user_data = {
         'user_id': 0,
         'name': name,
         'phone': phone,
-        'email': email,
+        'middle_name': midl_name,
+        'surname': surname,
         'image_link': image_link,
-        'auth_type': auth_type,
-        'auth_id': auth_id,
-        'description': description,
         'lang': lang,
-        'city': city,
-        'street': street,
-        'house': house,
-        'status': f'{status}_checking',
-        'score': 5,
-        'score_count': 0,
-        'total_score': 0,
-        'range': 500,
-        'latitudes': float(latitudes),
-        'longitudes': float(longitudes),
-        'last_active': None,
-        'create_date': None
+        'push': '0',
+        'description': '0',
+        'email': '0',
+        'status': '0',
+        'last_active': int(time.mktime(now.timetuple())),
+        'create_date': int(time.mktime(now.timetuple()))
     }
-    if auth_type == 'fb':
-        if not await user_fb_check_auth(access_token, user_id=auth_id, email=email):
-            return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
-                                content={"ok": False,
-                                         'description': 'Bad auth_id or access_token', })
-    elif auth_type == 'google':
-        if not user_google_check_auth(access_token=access_token, email=email):
-            return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
-                                content={"ok": False,
-                                         'description': 'Bad auth_id or access_token', })
-    else:
-        return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
-                            content={"ok": False,
-                                     'description': 'The selected auth type is not supported', })
 
-    user = User(data=user_data)
-    await user.create_user(db=db)
+    user = User.parse_obj(user_data)
+    data = await conn.create_user(db=db, user=user)
+    user = User.parse_obj(data[0])
 
     access = await conn.create_token(db=db, user_id=user.user_id, token_type='access')
     refresh = await conn.create_token(db=db, user_id=user.user_id, token_type='refresh')
 
     return JSONResponse(content={"ok": True,
-                                 'user': user.get_user_json(),
                                  'access_token': access[0][0],
-                                 'refresh_token': refresh[0][0]},
+                                 'refresh_token': refresh[0][0],
+                                 'user': user.dict()},
                         status_code=_status.HTTP_200_OK,
+
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
 @app.get(path='/user', tags=['User'], responses=get_me_res)
-async def get_user_information(access_token: str, db=Depends(data_b.connection), ):
+async def get_user_information(access_token: str, db=Depends(data_b.connection), user_id: int = 0):
     """Here you can check your username and password. Get users information.
     access_token: This is access auth token. You can get it when create account, login or """
-    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
-    if not user_id:
+    owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not owner_id:
         return Response(content="bad access token",
                         status_code=_status.HTTP_401_UNAUTHORIZED)
-    user_data = await conn.read_data(db=db, name='*', table='all_users',
-                                     id_name='user_id', id_data=user_id[0][0])
+    if user_id != 0:
+        user_data = await conn.read_data(db=db, name='*', table='all_users',
+                                         id_name='user_id', id_data=user_id)
+    else:
+        user_data = await conn.read_data(db=db, name='*', table='all_users',
+                                         id_name='user_id', id_data=owner_id[0][0])
     if not user_data:
         return Response(content="no user in database",
-                        status_code=_status.HTTP_401_UNAUTHORIZED)
-    user = User(user_data[0])
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+
+    user = User.parse_obj(user_data[0])
     return JSONResponse(content={"ok": True,
-                                 'user': user.get_user_json(),
+                                 'user': user.dict(),
                                  },
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
@@ -225,7 +194,8 @@ async def update_language(lang: str, access_token: str, db=Depends(data_b.connec
 
 
 @app.put(path='/user_geo', tags=['User'], responses=update_user_res)
-async def update_users_geo_position(latitude: float, longitude: float, access_token: str, db=Depends(data_b.connection)):
+async def update_users_geo_position(latitude: float, longitude: float, access_token: str,
+                                    db=Depends(data_b.connection)):
     """Update user's geo latitude and longitude.
 
     latitude: geo position latitude\n

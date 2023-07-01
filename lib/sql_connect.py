@@ -6,6 +6,8 @@ from fastapi_asyncpg import configure_asyncpg
 from lib.app_init import app
 from fastapi import Depends
 
+from lib.db_objects import User
+
 password = os.environ.get("DATABASE_PASS")
 host = os.environ.get("DATABASE_HOST")
 port = os.environ.get("DATABASE_PORT")
@@ -14,7 +16,7 @@ db_name = os.environ.get("DATABASE_NAME")
 password = 102015 if password is None else password
 host = '127.0.0.1' if host is None else host
 port = 5432 if port is None else port
-db_name = 'orava' if db_name is None else db_name
+db_name = 'cleaner_api' if db_name is None else db_name
 
 # Создаем новую таблицу
 data_b = configure_asyncpg(app, f'postgres://postgres:{password}@{host}:{port}/{db_name}')
@@ -29,20 +31,12 @@ async def create_all_users_table(db):
  middle_name TEXT DEFAULT '0',
  surname TEXT DEFAULT '0',
  image_link TEXT DEFAULT '0',
- auth_type TEXT DEFAULT '0',
- auth_id BIGINT DEFAULT 0,
  description TEXT DEFAULT '0',
  lang TEXT DEFAULT 'en',
- score DOUBLE PRECISION DEFAULT 0,
- score_count BIGINT DEFAULT 0,
- total_score BIGINT DEFAULT 0,
- status TEXT DEFAULT 'worker',
- range BIGINT DEFAULT 500,
- longitudes DOUBLE PRECISION,
- latitudes DOUBLE PRECISION,
+ status TEXT DEFAULT 'user',
  push TEXT DEFAULT '0',
- last_active timestamptz,
- create_date timestamptz)''')
+ last_active BIGINT DEFAULT 0,
+ create_date BIGINT DEFAULT 0)''')
 
 
 # Создаем новую таблицу
@@ -109,16 +103,13 @@ async def create_msg_line_table(db):
 
 
 # Создаем новую таблицу
-async def create_user(db: Depends, phone, email, name, auth_type, auth_id, description, lang, city, street, house,
-                      status, longitudes, latitudes, image_link: str):
-    now = datetime.datetime.now()
-    user_id = await db.fetch(f"INSERT INTO all_users (phone, email, name, auth_type, auth_id, description, lang, "
-                             f"city, street, house, status, longitudes, latitudes, image_link, last_active, "
-                             f"create_date) "
-                             f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) "
-                             f"ON CONFLICT DO NOTHING RETURNING user_id;", phone, email, name, auth_type, auth_id,
-                             description, lang, city, street, house, status, longitudes, latitudes, image_link, now,
-                             now)
+async def create_user(db: Depends, user: User):
+    user_id = await db.fetch(f"INSERT INTO all_users (name, middle_name, surname, phone, email, image_link, "
+                             f"description, lang, last_active, create_date) "
+                             f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
+                             f"ON CONFLICT DO NOTHING RETURNING *;", user.name, user.middle_name, user.surname,
+                             user.phone, user.email, user.image_link, user.description, user.lang, user.last_active,
+                             user.create_date)
     return user_id
 
 
