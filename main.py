@@ -17,9 +17,9 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="Welcome to Cleaner app API",
+        title="Welcome to Orava app API",
         version="0.9",
-        description="This is main API of project",
+        description="This is main API of service",
         routes=app.routes,
         tags=[
             {'name': 'System', 'description': "Checking login and password, as well as system settings."},
