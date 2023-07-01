@@ -1,0 +1,22 @@
+#!groovy
+// Start work
+properties([disableConcurrentBuilds()])
+
+pipeline {
+    agent any
+    triggers { pollSCM('* * * * *') }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '2'))
+        timestamps()
+    }
+    stages {
+        stage("step connect to server") {
+            steps {
+                sh 'ssh root@45.82.68.203 \'cd orava/orava_api && docker-compose down\''
+                sh 'ssh root@45.82.68.203 \'cd orava/orava_api && docker system prune -a\''
+                sh 'ssh root@45.82.68.203 \'cd orava/orava_api && git pull\''
+                sh 'ssh root@45.82.68.203 \'cd orava/orava_api && docker compose up --build --no-color --wait\''
+            }
+        }
+    }
+}

@@ -1,0 +1,14 @@
+version: "3.6"
+services:
+
+  api:
+    build: .
+    environment:
+      IP_SERVER: "80.85.142.184"
+      PORT_SERVER: 10020
+
+    volumes:
+      - ./:/main
+    ports:
+      - "10020:10020"
+    network_mode: "host"
