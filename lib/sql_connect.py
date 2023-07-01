@@ -41,8 +41,8 @@ async def create_all_users_table(db):
  longitudes DOUBLE PRECISION,
  latitudes DOUBLE PRECISION,
  push TEXT DEFAULT '0',
- last_active timestamp,
- create_date timestamp)''')
+ last_active timestamptz,
+ create_date timestamptz)''')
 
 
 # Создаем новую таблицу
@@ -53,38 +53,9 @@ async def create_token_table(db):
  token TEXT DEFAULT '0',
  token_type TEXT DEFAULT 'access',
  change_password INTEGER DEFAULT 0,
- create_date timestamp,
- death_date timestamp
+ create_date timestamptz,
+ death_date timestamptz
  )''')
-
-
-# Создаем новую таблицу
-async def create_work_table(db):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS work (
- id SERIAL PRIMARY KEY,
- user_id BIGINT DEFAULT 0,
- work_type TEXT DEFAULT 'clean',
- object_id INTEGER DEFAULT 0,
- object_size INTEGER DEFAULT 0
- )''')
-
-
-# Создаем новую таблицу
-async def create_work_type_table(db):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS object_type (
- id SERIAL PRIMARY KEY,
- name_ru TEXT DEFAULT 'room',
- name_en TEXT DEFAULT 'room',
- name_heb TEXT DEFAULT 'room'
- )''')
-    object_types = ((1, 'Убираю квартиры', 'I clean apartments', 'I clean apartments'),
-                    (2, 'Убираю дома', 'I clean houses', 'I clean houses'),
-                    (3, 'Убираю офисы', 'I clean offices', 'I clean offices'),
-                    (4, 'Убираю легковые автомобили', 'Clean up cars', 'Clean up cars'))
-    for i in object_types:
-        await db.execute(f"INSERT INTO object_type (id, name_ru, name_en, name_heb) "
-                         f"VALUES ($1, $2, $3, $4) "
-                         f"ON CONFLICT DO NOTHING;", i[0], i[1], i[2], i[3])
 
 
 # Создаем новую таблицу
@@ -96,7 +67,7 @@ async def create_files_table(db):
  file_path TEXT DEFAULT '0',
  file_type TEXT DEFAULT '0',
  owner_id INTEGER DEFAULT 0,
- create_date timestamp
+ create_date timestamptz
  )''')
 
 
@@ -121,50 +92,19 @@ async def create_sending_table(db):
 async def create_msg_line_table(db):
     await db.execute(f'''CREATE TABLE IF NOT EXISTS message_line (
  id SERIAL PRIMARY KEY,
- msg_id INTEGER DEFAULT 0,
- msg_type TEXT DEFAULT '0',
- title TEXT DEFAULT '0',
  text TEXT DEFAULT '0',
  description TEXT DEFAULT '0',
  lang TEXT DEFAULT 'en',
  from_id INTEGER DEFAULT 0,
  to_id INTEGER DEFAULT 0,
- status TEXT DEFAULT 'created',
- user_type TEXT DEFAULT 'user',
- read_date timestamp,
- deleted_date timestamp,
- create_date timestamp
- )''')
-
-
-# Создаем новую таблицу
-# Таблица для записи всех видов сообщений для всех пользователей
-async def create_order_table(db):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS orders (
- order_id SERIAL PRIMARY KEY,
- creator_id INTEGER DEFAULT 0,
- worker_id INTEGER DEFAULT 0,
- city TEXT DEFAULT '0',
- street TEXT DEFAULT '0',
- house TEXT DEFAULT '0',
- longitudes DOUBLE PRECISION,
- latitudes DOUBLE PRECISION,
- object_type_id INTEGER DEFAULT 0,
- object_type_name_ru TEXT DEFAULT '0',
- object_type_name_en TEXT DEFAULT '0',
- object_type_name_he TEXT DEFAULT '0',
- object_size INTEGER DEFAULT 0,
- comment TEXT DEFAULT '0',
- status TEXT DEFAULT 'created',
- work_type TEXT DEFAULT 'clean',
- search_count INTEGER DEFAULT 0,
- review_status TEXT DEFAULT 'no',
- review_text TEXT DEFAULT '0',
- score INTEGER DEFAULT 0,
- review_date timestamp,
- start_work timestamp,
- status_date timestamp,
- create_date timestamp
+ chat_id INTEGER DEFAULT 0,
+ replay_id INTEGER DEFAULT 0,
+ file_id INTEGER DEFAULT 0,
+ file_type TEXT DEFAULT '0',
+ status TEXT DEFAULT 'not_read',
+ read_date timestamptz,
+ deleted_date timestamptz,
+ create_date timestamptz
  )''')
 
 

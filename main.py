@@ -25,7 +25,6 @@ def custom_openapi():
             {'name': 'System', 'description': "Checking login and password, as well as system settings."},
             {'name': 'Auth', 'description': "Auth user methods in server"},
             {'name': "User", 'description': "User's information. Checking login and password"},
-            {'name': "Orders", 'description': "Work with orders in service"},
             {'name': "For all", 'description': "Routes for all users"},
             {'name': "Push", 'description': "All about push notifications"}
         ]
