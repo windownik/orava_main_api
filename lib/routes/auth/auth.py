@@ -1,5 +1,6 @@
 import datetime
 import os
+import random
 import time
 
 import starlette.status as _status
@@ -91,7 +92,7 @@ async def check_email(email: str, db=Depends(data_b.connection), ):
 @app.get(path='/check_phone', tags=['Auth'], responses=get_me_res)
 async def check_email(phone: int, db=Depends(data_b.connection), ):
     """Here you can check your phone.
-    email: string email for check it in db"""
+    phone: int phone for check it in db"""
 
     user_data = await conn.read_data(db=db, name='*', table='all_users', id_name='phone', id_data=phone)
     if not user_data:
@@ -100,6 +101,19 @@ async def check_email(phone: int, db=Depends(data_b.connection), ):
                             status_code=_status.HTTP_200_OK,
                             headers={'content-type': 'application/json; charset=utf-8'})
     return JSONResponse(content={"ok": False,
-                                 'description': 'This email is in database', },
+                                 'description': 'This phone is in database', },
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.get(path='/sms_to_phone', tags=['Auth'], responses=get_me_res)
+async def check_email(phone: int, db=Depends(data_b.connection), ):
+    """Here you can check your phone by sms.
+    phone: int phone for check"""
+
+    code = random.randrange(1000, 9999)
+    await conn.save_new_sms_code(db=db, phone=phone, code="1111")
+    return JSONResponse(content={"ok": True,
+                                 'description': 'This phone is not in database', },
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})

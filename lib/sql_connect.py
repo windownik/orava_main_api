@@ -69,6 +69,17 @@ async def create_files_table(db):
 
 # Создаем новую таблицу
 # Таблица для записи статей информации о файлах
+async def create_sms_code_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS sms_code (
+ id SERIAL PRIMARY KEY,
+ phone INTEGER DEFAULT 0,
+ code TEXT DEFAULT '0',
+ create_date timestamp DEFAULT now()
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи статей информации о файлах
 async def create_sending_table(db):
     await db.execute(f'''CREATE TABLE IF NOT EXISTS sending (
  id SERIAL PRIMARY KEY,
@@ -157,6 +168,14 @@ async def save_new_file(db: Depends, file_name: str, file_path: str, file_type: 
     file_id = await db.fetch(f"INSERT INTO files (file_name, file_path, file_type, owner_id, create_date) "
                              f"VALUES ($1, $2, $3, $4, $5) "
                              f"ON CONFLICT DO NOTHING RETURNING id;", file_name, file_path, file_type, owner_id, now)
+    return file_id
+
+
+# Создаем новую запись в базе данных
+async def save_new_sms_code(db: Depends, phone: int, code: str):
+    file_id = await db.fetch(f"INSERT INTO sms_code (phone, code) "
+                             f"VALUES ($1, $2) "
+                             f"ON CONFLICT DO NOTHING RETURNING id;", phone, code)
     return file_id
 
 

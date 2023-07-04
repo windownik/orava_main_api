@@ -22,9 +22,11 @@ async def initialization(connect):
 @app.get(path='/create_db', tags=['System'], )
 async def init_database(db=Depends(data_b.connection)):
     """Here you can first initialise database"""
+
     await conn.create_all_users_table(db)
-    await conn.create_token_table(db)
+    await conn.create_sms_code_table(db)
     await conn.create_sending_table(db)
+    await conn.create_token_table(db)
     await conn.create_files_table(db)
     await create_msg_line_table(db)
     return {"ok": True}
