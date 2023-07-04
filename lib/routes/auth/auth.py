@@ -117,3 +117,38 @@ async def check_email(phone: int, db=Depends(data_b.connection), ):
                                  'description': 'This phone is not in database', },
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.get(path='/sms_to_phone', tags=['Auth'], responses=get_me_res)
+async def check_email(phone: int, db=Depends(data_b.connection), ):
+    """Here you can check your phone by sms.
+    phone: int phone for check"""
+
+    code = random.randrange(1000, 9999)
+    await conn.save_new_sms_code(db=db, phone=phone, code="1111")
+    return JSONResponse(content={"ok": True,
+                                 'description': 'This phone is not in database', },
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.get(path='/check_sms', tags=['Auth'], responses=get_me_res)
+async def check_email(phone: int, sms_code: str, db=Depends(data_b.connection), ):
+    """Here you can check your phone by sms.
+    phone: int phone for check"""
+
+    code = await conn.read_data_order(table='sms_code', id_name='phone', id_data=phone, db=db)
+    if not code:
+        return JSONResponse(content={"ok": False,
+                                     'description': 'Error in db.', },
+                            status_code=_status.HTTP_400_BAD_REQUEST,
+                            headers={'content-type': 'application/json; charset=utf-8'})
+    if code[0][2] == sms_code:
+        return JSONResponse(content={"ok": True,
+                                     'description': 'Confirm phone number', },
+                            status_code=_status.HTTP_200_OK,
+                            headers={'content-type': 'application/json; charset=utf-8'})
+    return JSONResponse(content={"ok": False,
+                                 'description': 'SMS code not confirm', },
+                        status_code=_status.HTTP_400_BAD_REQUEST,
+                        headers={'content-type': 'application/json; charset=utf-8'})

@@ -221,9 +221,8 @@ async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = 
 
 
 # получаем данные с одним фильтром
-async def read_data_order(db: Depends, user_id: int, ):
-    data = await db.fetch(f"SELECT * FROM orders WHERE creator_id=$1 OR worker_id=$2 ORDER BY order_id DESC;",
-                          user_id, user_id)
+async def read_data_order(db: Depends, table: str, id_name: str, id_data, name: str = '*', order: str = 'id DESC'):
+    data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name} = $1 ORDER BY {order};", id_data)
     return data
 
 
