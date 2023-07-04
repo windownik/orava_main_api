@@ -7,7 +7,6 @@ from fastapi import Depends
 from starlette.responses import JSONResponse
 
 from lib import sql_connect as conn
-from lib.check_access_fb import user_fb_check_auth, user_google_check_auth
 from lib.db_objects import User
 from lib.response_examples import *
 from lib.sql_connect import data_b, app

@@ -26,7 +26,7 @@ async def initialization(connect):
 
 @app.post(path='/user', tags=['User'], responses=create_user_res)
 async def new_user(name: str, surname: str, midl_name: str, phone: int, lang: str, image_link: str,
-                   db=Depends(data_b.connection)):
+                   image_link_little: str, db=Depends(data_b.connection)):
     """Create new user in server.
     name: users name\n
     midl_name:  users midl name\n
@@ -47,6 +47,7 @@ async def new_user(name: str, surname: str, midl_name: str, phone: int, lang: st
         'middle_name': midl_name,
         'surname': surname,
         'image_link': image_link,
+        'image_link_little': image_link_little,
         'lang': lang,
         'push': '0',
         'description': '0',
@@ -94,7 +95,9 @@ async def get_user_information(access_token: str, db=Depends(data_b.connection),
 
     user = User.parse_obj(user_data[0])
     return JSONResponse(content={"ok": True,
-                                 'user': user.dict(),
+                                 'user': user.dict(
+                                     exclude={"push"}
+                                 ),
                                  },
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
