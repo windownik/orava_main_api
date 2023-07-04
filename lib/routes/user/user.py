@@ -66,7 +66,9 @@ async def new_user(name: str, surname: str, midl_name: str, phone: int, lang: st
     return JSONResponse(content={"ok": True,
                                  'access_token': access[0][0],
                                  'refresh_token': refresh[0][0],
-                                 'user': user.dict()},
+                                 'user': user.dict(
+                                     exclude={"push"}
+                                 )},
                         status_code=_status.HTTP_200_OK,
 
                         headers={'content-type': 'application/json; charset=utf-8'})

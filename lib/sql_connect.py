@@ -32,6 +32,7 @@ async def create_all_users_table(db):
  middle_name TEXT DEFAULT '0',
  surname TEXT DEFAULT '0',
  image_link TEXT DEFAULT '0',
+ image_link_little TEXT DEFAULT '0',
  description TEXT DEFAULT '0',
  lang TEXT DEFAULT 'en',
  status TEXT DEFAULT 'active',

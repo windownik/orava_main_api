@@ -11,6 +11,7 @@ class User(BaseModel):
     phone: int
     email: str
     image_link: str
+    image_link_little: str
     description: str
     lang: str
     status: str
