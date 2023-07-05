@@ -11,6 +11,8 @@ from lib.response_examples import *
 from lib.sql_connect import data_b, app
 from fastapi.responses import FileResponse
 
+from PIL import Image
+
 ip_server = os.environ.get("IP_SERVER")
 ip_port = os.environ.get("PORT_SERVER")
 
@@ -33,6 +35,32 @@ async def download_file(file_id: int, db=Depends(data_b.connection), ):
                             content={'desc': 'bad file id'})
     file_path = file[0]['file_path']
     return FileResponse(path=file_path, media_type='multipart/form-data', filename=file[0]['file_name'])
+
+
+@app.get(path='/file', tags=['For all'])
+async def download_file(file_id: int, db=Depends(data_b.connection), ):
+    """Get all company in database"""
+    file = await conn.read_data(db=db, table='files', id_name='id', id_data=file_id, name='*')
+    if not file:
+        return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
+                            content={'desc': 'bad file id'})
+
+    little_id = file[0]['little_file_id']
+    little_file = await conn.read_data(db=db, table='files', id_name='id', id_data=little_id, name='*')
+
+    if not little_file:
+        return JSONResponse(content={"ok": True,
+                                     'file_type': file[0]['file_type'],
+                                     'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
+                                     },
+                            headers={'content-type': 'application/json; charset=utf-8'})
+
+    return JSONResponse(content={"ok": True,
+                                 'file_type': file[0]['file_type'],
+                                 'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
+                                 'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={little_file[0][0]}"
+                                 },
+                        headers={'content-type': 'application/json; charset=utf-8'})
 
 
 @app.get(path='/files_in_line', tags=['For all'], responses=upload_files_list_res)
@@ -63,16 +91,16 @@ async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
 
 
 @app.post(path='/file_upload', tags=['For all'], responses=upload_files_res)
-async def download_file(file: UploadFile, access_token: str, db=Depends(data_b.connection), ):
+async def upload_file(file: UploadFile, access_token: str='1', db=Depends(data_b.connection), ):
     """
     Upload file to server\n
     file_type in response: .jpg and . png is image,\n
     .xlsx and .doc is ms_doc,\n
     other files get type file
     """
-    user_id = (await conn.get_token(db=db, token_type='access', token=access_token))[0][0]
-    # user_id = 1
-    if file.filename.split('.')[1] == 'jpg' or file.filename.split('.')[1] == 'png':
+    # user_id = (await conn.get_token(db=db, token_type='access', token=access_token))[0][0]
+    user_id = 1
+    if (file.filename.split('.')[1]).lower() == 'jpg' or (file.filename.split('.')[1]).lower() == 'png':
         file_path = f'files/img/'
         file_type = 'image'
     elif file.filename.split('.')[1] == 'xlsx' or file.filename.split('.')[1] == 'doc':
@@ -95,10 +123,37 @@ async def download_file(file: UploadFile, access_token: str, db=Depends(data_b.c
     f.write(b)
     f.close()
 
+    if file_type == 'image':
+        small_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
+                                                  file_type=file_type))[0][0]
+        small_filename = f"{small_file_id}.{file.filename.split('.')[1]}"
+        await conn.update_data(table='files', name='file_path', data=f"{file_path}{small_filename}",
+                               id_data=small_file_id, db=db)
+        await conn.update_data(table='files', name='little_file_id', data=small_file_id,
+                               id_data=file_id, db=db)
+        image = Image.open(f"{file_path}{filename}")
+        width, height = image.size
+        coefficient = height / 100
+        new_width = width / coefficient
+
+        resized_image = image.resize((int(new_width), 100))
+        resized_image.save(f"{file_path}{small_filename}")
+
+        return JSONResponse(content={'ok': True,
+                                     'creator_id': user_id,
+                                     'file_name': file.filename,
+                                     'file_type': file_type,
+                                     'file_id': file_id,
+                                     'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
+                                     'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={small_file_id}"
+                                     },
+                            headers={'content-type': 'application/json; charset=utf-8'})
+
     return JSONResponse(content={'ok': True,
                                  'creator_id': user_id,
                                  'file_name': file.filename,
                                  'file_type': file_type,
                                  'file_id': file_id,
-                                 'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}"},
+                                 'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
+                                 },
                         headers={'content-type': 'application/json; charset=utf-8'})
