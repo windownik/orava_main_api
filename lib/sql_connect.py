@@ -73,7 +73,7 @@ async def create_files_table(db):
 async def create_sms_code_table(db):
     await db.execute(f'''CREATE TABLE IF NOT EXISTS sms_code (
  id SERIAL PRIMARY KEY,
- phone INTEGER DEFAULT 0,
+ phone BIGINT DEFAULT 0,
  code TEXT DEFAULT '0',
  create_date timestamp DEFAULT now()
  )''')
