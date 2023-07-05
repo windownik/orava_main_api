@@ -119,19 +119,6 @@ async def check_email(phone: int, db=Depends(data_b.connection), ):
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/sms_to_phone', tags=['Auth'], responses=get_me_res)
-async def check_email(phone: int, db=Depends(data_b.connection), ):
-    """Here you can check your phone by sms.
-    phone: int phone for check"""
-
-    code = random.randrange(1000, 9999)
-    await conn.save_new_sms_code(db=db, phone=phone, code="1111")
-    return JSONResponse(content={"ok": True,
-                                 'description': 'This phone is not in database', },
-                        status_code=_status.HTTP_200_OK,
-                        headers={'content-type': 'application/json; charset=utf-8'})
-
-
 @app.get(path='/check_sms', tags=['Auth'], responses=get_me_res)
 async def check_email(phone: int, sms_code: str, db=Depends(data_b.connection), ):
     """Here you can check your phone by sms.

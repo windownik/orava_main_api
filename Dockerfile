@@ -15,6 +15,7 @@ RUN pip3 install uvicorn fastapi
 RUN pip3 install fastapi-asyncpg
 RUN pip3 install python-multipart
 RUN pip3 install firebase-admin
+RUN pip3 install pillow
 
 WORKDIR /main/
 COPY . /main/
