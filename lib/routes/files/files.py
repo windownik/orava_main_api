@@ -98,7 +98,7 @@ async def upload_file(file: UploadFile, access_token: str='0', db=Depends(data_b
     .xlsx and .doc is ms_doc,\n
     other files get type file
     """
-    user_id = (await conn.get_token(db=db, token_type='access', token=access_token))[0][0]
+    user_id = (await conn.get_token(db=db, token_type='access', token=access_token))
     if not user_id:
         user_id = 0
     else:

@@ -15,7 +15,7 @@ pipeline {
                 sh 'ssh root@45.82.68.203 \'cd orava/orava_api && docker-compose down\''
                 sh 'ssh root@45.82.68.203 \'cd orava/orava_api && docker system prune -a\''
                 sh 'ssh root@45.82.68.203 \'cd orava/orava_api && git pull\''
-                sh 'ssh root@45.82.68.203 \'cd orava/orava_api && docker compose up --build\''
+                sh 'ssh root@45.82.68.203 \'cd orava/orava_api && docker compose up --build --no-color --wait\''
             }
         }
     }
