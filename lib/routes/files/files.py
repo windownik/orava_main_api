@@ -91,15 +91,18 @@ async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
 
 
 @app.post(path='/file_upload', tags=['For all'], responses=upload_files_res)
-async def upload_file(file: UploadFile, access_token: str='1', db=Depends(data_b.connection), ):
+async def upload_file(file: UploadFile, access_token: str='0', db=Depends(data_b.connection), ):
     """
     Upload file to server\n
     file_type in response: .jpg and . png is image,\n
     .xlsx and .doc is ms_doc,\n
     other files get type file
     """
-    # user_id = (await conn.get_token(db=db, token_type='access', token=access_token))[0][0]
-    user_id = 1
+    user_id = (await conn.get_token(db=db, token_type='access', token=access_token))[0][0]
+    if not user_id:
+        user_id = 0
+    else:
+        user_id = user_id[0][0]
     if (file.filename.split('.')[1]).lower() == 'jpg' or (file.filename.split('.')[1]).lower() == 'png':
         file_path = f'files/img/'
         file_type = 'image'
