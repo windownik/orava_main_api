@@ -120,7 +120,7 @@ async def create_msg_line_table(db):
 async def create_user(db: Depends, user: User):
     user_id = await db.fetch(f"INSERT INTO all_users (name, middle_name, surname, phone, email, image_link, "
                              f"image_link_little, description, lang, last_active, create_date) "
-                             f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
+                             f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) "
                              f"ON CONFLICT DO NOTHING RETURNING *;", user.name, user.middle_name, user.surname,
                              user.phone, user.email, user.image_link, user.image_link_little, user.description,
                              user.lang, user.last_active, user.create_date)
