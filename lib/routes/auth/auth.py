@@ -38,7 +38,7 @@ async def create_new_access_token(refresh_token: str, db=Depends(data_b.connecti
     now = datetime.datetime.now()
     less_3 = now - datetime.timedelta(days=3)
 
-    if user_id[0][1] < less_3:
+    if user_id[0][1] < less_3.timetuple():
         refresh = await conn.create_token(db=db, user_id=user_id[0][0], token_type='refresh')
         refresh_token = refresh[0][0]
     access = await conn.create_token(db=db, user_id=user_id[0][0], token_type='access')
