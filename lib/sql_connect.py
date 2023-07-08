@@ -117,51 +117,13 @@ async def create_msg_line_table(db):
 
 
 # Создаем новую таблицу
-# Таблица для записи всех видов сообщений для всех пользователей
-async def create_user_chats_table(db):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS user_chats (
- id SERIAL PRIMARY KEY,
- description TEXT DEFAULT '0',
- from_id INTEGER DEFAULT 0,
- to_id INTEGER DEFAULT 0,
- chat_id INTEGER DEFAULT 0,
- replay_id INTEGER DEFAULT 0,
- file_id INTEGER DEFAULT 0,
- file_type TEXT DEFAULT '0',
- status TEXT DEFAULT 'not_read',
- read_date timestamptz,
- deleted_date timestamptz,
- create_date timestamptz
- )''')
-
-
-# Создаем новую таблицу
-# Таблица для записи всех видов сообщений для всех пользователей
-async def create_chats_table(db):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS chats (
- id SERIAL PRIMARY KEY,
- name TEXT DEFAULT '0',
- description TEXT DEFAULT '0',
- creator_id INTEGER DEFAULT 0,
- chat_id INTEGER DEFAULT 0,
- replay_id INTEGER DEFAULT 0,
- file_id INTEGER DEFAULT 0,
- file_type TEXT DEFAULT '0',
- status TEXT DEFAULT 'not_read',
- read_date timestamptz,
- deleted_date timestamptz,
- create_date timestamptz
- )''')
-
-
-# Создаем новую таблицу
 async def create_user(db: Depends, user: User):
     user_id = await db.fetch(f"INSERT INTO all_users (name, middle_name, surname, phone, email, image_link, "
-                             f"description, lang, last_active, create_date) "
+                             f"image_link_little, description, lang, last_active, create_date) "
                              f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
                              f"ON CONFLICT DO NOTHING RETURNING *;", user.name, user.middle_name, user.surname,
-                             user.phone, user.email, user.image_link, user.description, user.lang, user.last_active,
-                             user.create_date)
+                             user.phone, user.email, user.image_link, user.image_link_little, user.description,
+                             user.lang, user.last_active, user.create_date)
     return user_id
 
 
