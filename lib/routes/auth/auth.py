@@ -131,8 +131,27 @@ async def check_email(phone: int, sms_code: str, db=Depends(data_b.connection), 
                             status_code=_status.HTTP_400_BAD_REQUEST,
                             headers={'content-type': 'application/json; charset=utf-8'})
     if code[0][2] == sms_code:
+
+        user_data = await conn.read_data(db=db, name='*', table='all_users',
+                                         id_name='phone', id_data=phone)
+        if not user_data:
+            return JSONResponse(content={"ok": True,
+                                         'description': 'Confirm phone number', },
+                                status_code=_status.HTTP_200_OK,
+                                headers={'content-type': 'application/json; charset=utf-8'})
+
+        user = User.parse_obj(user_data[0])
+        access = await conn.create_token(db=db, user_id=user.user_id, token_type='access')
+        refresh = await conn.create_token(db=db, user_id=user.user_id, token_type='refresh')
+
         return JSONResponse(content={"ok": True,
-                                     'description': 'Confirm phone number', },
+                                     'description': 'Confirm phone number',
+                                     'user': user.dict(
+                                         exclude={"push"}
+                                     ),
+                                     'access_token': access[0][0],
+                                     'refresh_token': refresh[0][0],
+                                     },
                             status_code=_status.HTTP_200_OK,
                             headers={'content-type': 'application/json; charset=utf-8'})
     return JSONResponse(content={"ok": False,
