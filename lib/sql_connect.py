@@ -514,7 +514,7 @@ async def update_password(db: Depends, user_id: int, password_hash: str):
 # Удаляем токены
 async def delete_old_tokens(db: Depends):
     now = datetime.datetime.now()
-    await db.execute(f"DELETE FROM token WHERE death_date < $1", int(time.mktime(now.timetuple())))
+    await db.execute(f"DELETE FROM token WHERE death_date < $1", now)
 
 
 # Удаляем токены
