@@ -446,8 +446,8 @@ async def update_order(db: Depends, order_id: int, city: str, street: str, house
 
 
 # Создаем новую таблицу
-async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang: str, image_link: str, push: str,
-                      user_id: int):
+async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang: str, image_link: str,
+                      user_id: int, push: str = '0'):
     if name == '0' and surname == '0' and midl_name == '0' and lang == '0' and image_link == '0' \
             and push == '0':
         return user_id
