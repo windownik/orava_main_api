@@ -49,8 +49,8 @@ async def create_token_table(db):
  token TEXT DEFAULT '0',
  token_type TEXT DEFAULT 'access',
  change_password INTEGER DEFAULT 0,
- create_date timestamptz,
- death_date timestamptz
+ create_date timestamp,
+ death_date timestamp
  )''')
 
 
