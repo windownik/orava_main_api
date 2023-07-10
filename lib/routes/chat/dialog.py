@@ -19,7 +19,7 @@ ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 @app.post(path='/dialog', tags=['Chat'], responses=dialog_created_res)
 async def new_user(access_token: str, to_id: int, db=Depends(data_b.connection)):
-    """Create new user in server.
+    """Create new dialog with user with to_id.
     access_token: This is access auth token. You can get it when create account or login\n
     to_id: Second user in dialog"""
 
@@ -51,6 +51,6 @@ async def new_user(access_token: str, to_id: int, db=Depends(data_b.connection))
             await conn.update_data(table='dialog', name='to_status', data='active', db=db, id_name='msg_chat_id',
                                    id_data=dialog.msg_chat_id)
     return JSONResponse(status_code=_status.HTTP_200_OK,
-                        content={"ok": False,
-                                 "dialog": await dialog.to_json(db=db)
+                        content={"ok": True,
+                                 "dialog": await dialog.to_json(db=db, user_id=owner_id[0][0])
                                  })

@@ -1,10 +1,13 @@
 import datetime
-from typing import List
+from typing import Dict
 from fastapi import WebSocket
 from fastapi.responses import HTMLResponse
 from starlette.websockets import WebSocketDisconnect
 
 from lib.app_init import app
+
+'127.0.0.1:8000'
+"45.82.68.203:10020"
 
 html = """
 <!DOCTYPE html>
@@ -21,7 +24,7 @@ html = """
         <ul id='messages'>
         </ul>
         <script>
-            var ws = new WebSocket("ws://45.82.68.203:10020/ws");
+            var ws = new WebSocket("ws://127.0.0.1:8000/ws/1");
             ws.onmessage = function(event) {
                 var messages = document.getElementById('messages')
                 var message = document.createElement('li')
@@ -48,39 +51,39 @@ async def get():
 
 class ConnectionManager:
     def __init__(self):
-        self.connections: List[WebSocket] = []
+        self.connections: Dict = {}
 
-    async def connect(self, websocket: WebSocket):
+    async def connect(self, websocket: WebSocket, user_id: int):
         await websocket.accept()
-        self.connections.append(websocket)
+        self.connections[user_id] = websocket
         print(len(self.connections))
 
-    async def disconnect(self, websocket: WebSocket):
-        self.connections.remove(websocket)
+    async def disconnect(self, user_id: int):
+        self.connections.pop(user_id)
 
-    async def broadcast(self, data: str):
-        for connection in self.connections:
-            await connection.send_json(data)
+    async def broadcast(self, data: str, user_id: int):
+        for key in self.connections.keys():
+            if user_id == key:
+                continue
+            await self.connections[key].send_json(data)
 
 
 manager = ConnectionManager()
 
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
-    print('connect')
-    print(len(manager.connections))
+@app.websocket("/ws/{user_id}")
+async def websocket_endpoint(websocket: WebSocket, user_id: int):
+    await manager.connect(websocket, user_id=user_id)
     try:
-
         while True:
             data = await websocket.receive_text()
-            print('message')
+            print('qdfwedf')
+            # if 'user_id' not in data:
+            #     await websocket.send_json({'desc': 'No user_id in message'})
+            #     continue
             now = datetime.datetime.now()
-            await manager.broadcast(data)
-            await manager.connections[0].send_json(str(datetime.datetime.now() - now))
+            await manager.broadcast(data, user_id=user_id)
+            await manager.connections[user_id].send_json(str(datetime.datetime.now() - now))
 
-    except WebSocketDisconnect:
-        await manager.disconnect(websocket)
-    except:
-        pass
+    except Exception as ex:
+        print(ex)

@@ -50,16 +50,16 @@ class Dialog(BaseModel):
     to_status: str = '0'
     create_date: int
 
-    async def to_json(self, db: Depends):
-        users_data = await conn.get_dialog_users(db=db, from_id=self.owner_id, to_id=self.to_id)
-        if users_data[0][0] == self.owner_id:
-            owner = User.parse_obj(users_data[0])
-            user_to = User.parse_obj(users_data[1])
+    async def to_json(self, db: Depends, user_id: int):
+
+        if user_id == self.owner_id:
+            user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.to_id, db=db)
+
         else:
-            owner = User.parse_obj(users_data[1])
-            user_to = User.parse_obj(users_data[0])
+            user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.owner_id, db=db)
+
+        user_to = User.parse_obj(user_data[0])
         resp = self.dict()
-        resp['owner'] = owner.dict()
         resp['user_to'] = user_to.dict()
         resp.pop('owner_id')
         resp.pop('to_id')
