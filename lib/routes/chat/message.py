@@ -1,5 +1,5 @@
 import datetime
-from typing import Dict
+from typing import List
 from fastapi import WebSocket
 from fastapi.responses import HTMLResponse
 from starlette.websockets import WebSocketDisconnect
@@ -24,7 +24,7 @@ html = """
         <ul id='messages'>
         </ul>
         <script>
-            var ws = new WebSocket("ws://127.0.0.1:8000/ws/1");
+            var ws = new WebSocket("ws://45.82.68.203:10020/ws");
             ws.onmessage = function(event) {
                 var messages = document.getElementById('messages')
                 var message = document.createElement('li')
@@ -51,39 +51,31 @@ async def get():
 
 class ConnectionManager:
     def __init__(self):
-        self.connections: Dict = {}
+        self.connections: List[WebSocket] = []
 
-    async def connect(self, websocket: WebSocket, user_id: int):
+    async def connect(self, websocket: WebSocket):
         await websocket.accept()
-        self.connections[user_id] = websocket
-        print(len(self.connections))
+        self.connections.append(websocket)
 
-    async def disconnect(self, user_id: int):
-        self.connections.pop(user_id)
+    async def disconnect(self, websocket: WebSocket):
+        self.connections.remove(websocket)
 
-    async def broadcast(self, data: str, user_id: int):
-        for key in self.connections.keys():
-            if user_id == key:
-                continue
-            await self.connections[key].send_json(data)
+    async def broadcast(self, data: str):
+        for connect in self.connections:
+            await connect.send_json(data)
 
 
 manager = ConnectionManager()
 
 
-@app.websocket("/ws/{user_id}")
-async def websocket_endpoint(websocket: WebSocket, user_id: int):
-    await manager.connect(websocket, user_id=user_id)
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
     try:
         while True:
             data = await websocket.receive_text()
-            print('qdfwedf')
-            # if 'user_id' not in data:
-            #     await websocket.send_json({'desc': 'No user_id in message'})
-            #     continue
-            now = datetime.datetime.now()
-            await manager.broadcast(data, user_id=user_id)
-            await manager.connections[user_id].send_json(str(datetime.datetime.now() - now))
+            await websocket.send_text(data)
+            # await manager.broadcast(data)
 
     except Exception as ex:
         print(ex)
