@@ -128,6 +128,25 @@ async def update_user_information(access_token: str, name: str = '0', surname: s
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
+@app.get(path='/user_by_phone', tags=['User'], responses=dialog_created_res)
+async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connection)):
+    owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not owner_id:
+        return Response(content="bad access token",
+                        status_code=_status.HTTP_401_UNAUTHORIZED)
+    user_data = await conn.read_data(db=db, table='all_users', id_name='phone', id_data=phone)
+    if not user_data:
+        return JSONResponse(status_code=_status.HTTP_200_OK,
+                            content={"ok": False,
+                                     "description": "no user with this phone"})
+    else:
+        user = User.parse_obj(user_data[0])
+        return JSONResponse(status_code=_status.HTTP_200_OK,
+                            content={"ok": True,
+                                     "user": user.dict()},
+                            headers={'content-type': 'application/json; charset=utf-8'})
+
+
 @app.delete(path='/user', tags=['User'], responses=update_user_res)
 async def delete_user(access_token: str, db=Depends(data_b.connection)):
     """Delete all user information.\n

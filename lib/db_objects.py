@@ -57,12 +57,14 @@ class Dialog(BaseModel):
 
         else:
             user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.owner_id, db=db)
+            self.to_status = self.owner_status
 
         user_to = User.parse_obj(user_data[0])
         resp = self.dict()
         resp['user_to'] = user_to.dict()
         resp.pop('owner_id')
         resp.pop('to_id')
+        resp.pop('owner_status')
         return resp
 
 

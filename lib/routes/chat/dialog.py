@@ -17,25 +17,6 @@ ip_port = 80 if ip_port is None else ip_port
 ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 
-@app.get(path='/user_by_phone', tags=['Chat'], responses=dialog_created_res)
-async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connection)):
-    owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
-    if not owner_id:
-        return Response(content="bad access token",
-                        status_code=_status.HTTP_401_UNAUTHORIZED)
-    user_data = await conn.read_data(db=db, table='all_users', id_name='phone', id_data=phone)
-    if not user_data:
-        return JSONResponse(status_code=_status.HTTP_200_OK,
-                            content={"ok": False,
-                                     "description": "no user with this phone"})
-    else:
-        user = User.parse_obj(user_data[0])
-        return JSONResponse(status_code=_status.HTTP_200_OK,
-                            content={"ok": True,
-                                     "user": user.dict()},
-                            headers={'content-type': 'application/json; charset=utf-8'})
-
-
 @app.post(path='/dialog', tags=['Chat'], responses=dialog_created_res)
 async def new_dialog(access_token: str, to_id: int, db=Depends(data_b.connection)):
     """Create new dialog with user with to_id.
