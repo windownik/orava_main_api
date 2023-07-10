@@ -70,6 +70,7 @@ manager = ConnectionManager()
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     print('connect')
+    print(len(manager.connections))
     try:
 
         while True:
