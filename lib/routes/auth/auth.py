@@ -91,7 +91,7 @@ async def check_email(email: str, db=Depends(data_b.connection), ):
 
 
 @app.get(path='/check_phone', tags=['Auth'], responses=get_me_res)
-async def check_email(phone: int, db=Depends(data_b.connection), ):
+async def check_phone(phone: int, db=Depends(data_b.connection), ):
     """Here you can check your phone.
     phone: int phone for check it in db"""
 
@@ -108,8 +108,8 @@ async def check_email(phone: int, db=Depends(data_b.connection), ):
 
 
 @app.get(path='/sms_to_phone', tags=['Auth'], responses=get_me_res)
-async def check_email(phone: int, db=Depends(data_b.connection), ):
-    """Here you can check your phone by sms.
+async def send_sms_to_phone(phone: int, db=Depends(data_b.connection), ):
+    """Here you can send sms to your phone.
     phone: int phone for check"""
 
     code = random.randrange(1000, 9999)
@@ -121,7 +121,7 @@ async def check_email(phone: int, db=Depends(data_b.connection), ):
 
 
 @app.get(path='/check_sms', tags=['Auth'], responses=get_me_res)
-async def check_email(phone: int, sms_code: str, db=Depends(data_b.connection), ):
+async def check_sms_code(phone: int, sms_code: str, db=Depends(data_b.connection), ):
     """Here you can check your phone by sms.
     phone: int phone for check"""
 
