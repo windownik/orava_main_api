@@ -16,7 +16,7 @@ ip_port = 80 if ip_port is None else ip_port
 ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 
-@app.post(path='/get_all', tags=['Chat'], responses=dialog_created_res)
+@app.get(path='/get_all', tags=['Chat'], responses=dialog_created_res)
 async def get_all_communities_chats_dialogs(access_token: str, db=Depends(data_b.connection)):
     """Create new user in server.
     access_token: This is access auth token. You can get it when create account or login\n
