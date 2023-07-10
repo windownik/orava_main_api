@@ -21,7 +21,7 @@ html = """
         <ul id='messages'>
         </ul>
         <script>
-            var ws = new WebSocket("ws://45.82.68.203:8000/ws");
+            var ws = new WebSocket("ws://45.82.68.203:10020/ws");
             ws.onmessage = function(event) {
                 var messages = document.getElementById('messages')
                 var message = document.createElement('li')
