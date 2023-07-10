@@ -1,7 +1,6 @@
 import datetime
 import os
 import random
-import time
 
 import starlette.status as _status
 from fastapi import Depends

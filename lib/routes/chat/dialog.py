@@ -32,7 +32,8 @@ async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connect
         user = User.parse_obj(user_data[0])
         return JSONResponse(status_code=_status.HTTP_200_OK,
                             content={"ok": True,
-                                     "user": user.dict()})
+                                     "user": user.dict()},
+                            headers={'content-type': 'application/json; charset=utf-8'})
 
 
 @app.post(path='/dialog', tags=['Chat'], responses=dialog_created_res)
@@ -71,7 +72,8 @@ async def new_dialog(access_token: str, to_id: int, db=Depends(data_b.connection
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
                                  "dialog": await dialog.to_json(db=db, user_id=owner_id[0][0])
-                                 })
+                                 },
+                        headers={'content-type': 'application/json; charset=utf-8'})
 
 
 @app.delete(path='/dialog', tags=['Chat'], responses=dialog_created_res)
