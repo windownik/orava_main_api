@@ -69,10 +69,12 @@ manager = ConnectionManager()
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
+    print('connect')
     try:
 
         while True:
             data = await websocket.receive_text()
+            print('message')
             now = datetime.datetime.now()
             await manager.broadcast(data)
             await manager.connections[0].send_json(str(datetime.datetime.now() - now))
