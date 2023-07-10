@@ -504,3 +504,8 @@ async def delete_all_tokens(db: Depends, user_id: int):
 # Удаляем все записи из таблицы по ключу
 async def delete_where(db: Depends, table: str, id_name: str, data):
     await db.execute(f"DELETE FROM {table} WHERE {id_name} = $1", data)
+
+
+# Удаляем все записи из таблицы
+async def delete_from_table(db: Depends, table: str):
+    await db.execute(f"DELETE FROM {table};")

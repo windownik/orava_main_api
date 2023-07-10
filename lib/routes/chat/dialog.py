@@ -54,3 +54,33 @@ async def new_user(access_token: str, to_id: int, db=Depends(data_b.connection))
                         content={"ok": True,
                                  "dialog": await dialog.to_json(db=db, user_id=owner_id[0][0])
                                  })
+
+
+@app.delete(path='/dialog', tags=['Chat'], responses=dialog_created_res)
+async def delete_dialog(access_token: str, msg_chat_id: int, db=Depends(data_b.connection)):
+    owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not owner_id:
+        return Response(content="bad access token",
+                        status_code=_status.HTTP_401_UNAUTHORIZED)
+
+    dialog_data = await conn.read_data(table='dialog', id_name='msg_chat_id', id_data=msg_chat_id, db=db)
+    if not dialog_data:
+        return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
+                            content={"ok": False,
+                                     'description': "Haven't dialog with msg_chat_id", })
+    if dialog_data[0]['owner_id'] == owner_id[0][0]:
+        await conn.update_data(table='dialog', name='owner_status', data='delete', db=db, id_name='msg_chat_id',
+                               id_data=msg_chat_id)
+    elif dialog_data[0]['to_id'] == owner_id[0][0]:
+        await conn.update_data(table='dialog', name='to_status', data='delete', db=db, id_name='msg_chat_id',
+                               id_data=msg_chat_id)
+    else:
+        return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
+                            content={"ok": False,
+                                     'description': "not enough rights", })
+
+    await conn.delete_from_table(db=db, table=f'messages_{msg_chat_id}')
+    return JSONResponse(status_code=_status.HTTP_200_OK,
+                        content={"ok": True,
+                                 "description": 'dialog and all messages was deleted'
+                                 })
