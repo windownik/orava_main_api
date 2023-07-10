@@ -37,4 +37,5 @@ async def get_all_communities_chats_dialogs(access_token: str, db=Depends(data_b
                                  "dialogs": list_dialogs,
                                  "communities": [],
                                  "chats": []
-                                 })
+                                 },
+                        headers={'content-type': 'application/json; charset=utf-8'})
