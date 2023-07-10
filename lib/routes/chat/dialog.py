@@ -5,7 +5,7 @@ from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
-from lib.db_objects import Dialog
+from lib.db_objects import Dialog, User
 from lib.response_examples import *
 from lib.routes.chat.dialog_funcs import check_dialog_in_db
 from lib.sql_connect import data_b, app
@@ -17,8 +17,26 @@ ip_port = 80 if ip_port is None else ip_port
 ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 
+@app.get(path='/user_by_phone', tags=['Chat'], responses=dialog_created_res)
+async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connection)):
+    owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not owner_id:
+        return Response(content="bad access token",
+                        status_code=_status.HTTP_401_UNAUTHORIZED)
+    user_data = await conn.read_data(db=db, table='all_users', id_name='phone', id_data=phone)
+    if not user_data:
+        return JSONResponse(status_code=_status.HTTP_200_OK,
+                            content={"ok": False,
+                                     "description": "no user with this phone"})
+    else:
+        user = User.parse_obj(user_data[0])
+        return JSONResponse(status_code=_status.HTTP_200_OK,
+                            content={"ok": True,
+                                     "user": user.dict()})
+
+
 @app.post(path='/dialog', tags=['Chat'], responses=dialog_created_res)
-async def new_user(access_token: str, to_id: int, db=Depends(data_b.connection)):
+async def new_dialog(access_token: str, to_id: int, db=Depends(data_b.connection)):
     """Create new dialog with user with to_id.
     access_token: This is access auth token. You can get it when create account or login\n
     to_id: Second user in dialog"""
