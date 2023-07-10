@@ -16,6 +16,7 @@ RUN pip3 install fastapi-asyncpg
 RUN pip3 install python-multipart
 RUN pip3 install firebase-admin
 RUN pip3 install pillow
+RUN pip3 install websockets
 
 WORKDIR /main/
 COPY . /main/

@@ -59,35 +59,6 @@ access_token_res = {
     },
 }
 
-check_phone_res = {
-    200: {
-        "description": "Success",
-        "content": {
-            "application/json": {
-                "examples": {
-                    "odd": {
-                        "summary": "Success",
-                        "value": {"ok": True, 'desc': 'no phone in database'}
-                    },
-                }
-            }
-        }
-    },
-    226: {
-        "description": "Success",
-        "content": {
-            "application/json": {
-                "examples": {
-                    "odd": {
-                        "summary": "Success",
-                        "value": 'have user with same phone'
-                    },
-                }
-            }
-        }
-    },
-}
-
 create_user_res = {
     200: {
         "description": "Success",
@@ -218,36 +189,6 @@ login_get_res = {
     },
 }
 
-update_pass_res = {
-    200: {
-        "description": "Success",
-        "content": {
-            "application/json": {
-                "examples": {
-                    "odd": {
-                        "summary": "Success",
-                        "value": {"ok": True,
-                                  'desc': 'all users information updated'}
-                    },
-                }
-            }
-        }
-    },
-    401: {
-        "description": "Success",
-        "content": {
-            "application/json": {
-                "examples": {
-                    "odd": {
-                        "summary": "Success",
-                        "value": "bad phone or password"
-                    },
-                }
-            }
-        }
-    },
-}
-
 upload_files_res = {
     200: {
         "description": "Success",
@@ -351,23 +292,7 @@ send_push_res = {
     },
 }
 
-new_msg_created_res = {
-    200: {
-        "description": "Success",
-        "content": {
-            "application/json": {
-                "examples": {
-                    "odd": {
-                        "summary": "Success",
-                        "value": {"ok": True, 'desc': 'New message was created successfully.'}
-                    },
-                }
-            }
-        }
-    },
-}
-
-get_msg_list_res = {
+dialog_created_res = {
     200: {
         "description": "Success",
         "content": {
@@ -377,26 +302,61 @@ get_msg_list_res = {
                         "summary": "Success",
                         "value": {
                             "ok": True,
-                            "count": 1,
-                            "msg_list": [
-                                {
-                                    "id": 1,
-                                    "msg_id": 0,
-                                    "msg_type": "text",
-                                    "title": "Test Title",
-                                    "text": "text",
+                            "dialog": {
+                                "msg_chat_id": 1,
+                                "owner_status": "active",
+                                "to_status": "active",
+                                "create_date": 1688889141,
+                                "owner": {
+                                    "user_id": 1,
+                                    "name": "Nik",
+                                    "middle_name": "0",
+                                    "surname": "Mislivets",
+                                    "phone": 123456789,
+                                    "email": "0",
+                                    "image_link": "http://127.0.0.1:10020/file_download?file_id=15",
+                                    "image_link_little": "http://127.0.0.1:10020/file_download?file_id=16",
                                     "description": "0",
                                     "lang": "en",
-                                    "from_user": 2,
-                                    "to_user": 2,
-                                    "status": "created",
-                                    "user_type": "user",
-                                    "read_date": "None",
-                                    "deleted_date": "None",
-                                    "create_date": "2023-04-24 11:17:13.655705"
+                                    "status": "active",
+                                    "push": "0",
+                                    "last_active": 1688878732,
+                                    "create_date": 1688878732
+                                },
+                                "user_to": {
+                                    "user_id": 2,
+                                    "name": "Helen",
+                                    "middle_name": "0",
+                                    "surname": "Kryvetskaya",
+                                    "phone": 1237328399,
+                                    "email": "0",
+                                    "image_link": "http://127.0.0.1:10020/file_download?file_id=7",
+                                    "image_link_little": "http://127.0.0.1:10020/file_download?file_id=8",
+                                    "description": "0",
+                                    "lang": "ru",
+                                    "status": "active",
+                                    "push": "0",
+                                    "last_active": 1688888732,
+                                    "create_date": 1688888732
                                 }
-                            ]
+                            }
                         }
+                    },
+                }
+            }
+        }
+    },
+}
+
+new_msg_created_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": True, 'desc': 'New message was created successfully.'}
                     },
                 }
             }
@@ -476,129 +436,6 @@ get_msg_by_id_res = {
                                 "deleted_date": "None",
                                 "create_date": "2023-04-24 11:17:13.655705"
                             }
-                        }
-                    },
-                }
-            }
-        }
-    },
-}
-
-create_get_order_res = {
-    200: {
-        "description": "Success",
-        "content": {
-            "application/json": {
-                "examples": {
-                    "odd": {
-                        "summary": "Success",
-                        "value": {"ok": True,
-                                  'from_user': "{user object here}",
-                                  "admin_comments": ["{message object here}","{message object here}"],
-                                  'order': {
-                                      "ok": True,
-                                      "order": {
-                                          "order_id": 12,
-                                          "creator_id": 14,
-                                          "worker_id": 345,
-                                          "address": {
-                                              "city": "Minsk",
-                                              "street": "Mosprospect",
-                                              "house": "1 2",
-                                              "latitudes": 21.323,
-                                              "longitudes": 32.344
-                                          },
-                                          "object_type_id": 1,
-                                          "object_name_ru": "Убираю квартиры",
-                                          "object_name_en": "I clean apartments",
-                                          "object_name_he": "I clean apartments",
-                                          "object_size": 1,
-                                          "comment": "Hack world",
-                                          "status": "created",
-                                          "review": {
-                                              "order_id": 20,
-                                              "worker_id": 0,
-                                              "review_text": "0",
-                                              "score": 0,
-                                              "review_status": "created",
-                                              "review_date": "None"
-                                          },
-                                          "start_work": "2023-11-27 14:35:45",
-                                          "create_date": "2023-05-17 12:42:53.153262"
-                                      }
-                                  }}
-                    },
-                }
-            }
-        }
-    },
-}
-
-get_all_order_res = {
-    200: {
-        "description": "Success",
-        "content": {
-            "application/json": {
-                "examples": {
-                    "odd": {
-                        "summary": "Success",
-                        "value": {
-                            "ok": True,
-                            "orders_in_deal": [
-                                1,
-
-                            ],
-                            "orders": [
-                                {
-                                    "order_id": 1,
-                                    "creator_id": 1,
-                                    "worker_id": 1,
-                                    "address": {
-                                        "city": "Минск ",
-                                        "street": "брикеля ",
-                                        "house": "12",
-                                        "latitudes": 23.847127,
-                                        "longitudes": 53.699845
-                                    },
-                                    "object_type_id": 1,
-                                    "object_name_ru": "Убираю квартиры",
-                                    "object_name_en": "I clean apartments",
-                                    "object_name_he": "I clean apartments",
-                                    "object_size": 1,
-                                    "comment": "помыть пол ",
-                                    "status": "created",
-                                    "review": {
-                                        "order_id": 1,
-                                        "worker_id": 0,
-                                        "review_text": "0",
-                                        "score": 0,
-                                        "review_status": "created",
-                                        "review_date": "None"
-                                    },
-                                    "start_work": "2023-05-18 09:04:00",
-                                    "status_date": "None",
-                                    "create_date": "2023-05-18 15:07:07.185038"
-                                }
-                            ]
-                        }
-                    },
-                }
-            }
-        }
-    },
-}
-
-delete_order_res = {
-    200: {
-        "description": "Success",
-        "content": {
-            "application/json": {
-                "examples": {
-                    "odd": {
-                        "summary": "Success",
-                        "value": {
-                            "ok": True,
-                            "description": 'The order was successfully deleted.'
                         }
                     },
                 }

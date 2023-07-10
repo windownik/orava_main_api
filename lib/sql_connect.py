@@ -97,22 +97,100 @@ async def create_sending_table(db):
 
 # Создаем новую таблицу
 # Таблица для записи всех видов сообщений для всех пользователей
-async def create_msg_line_table(db):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS message_line (
- id SERIAL PRIMARY KEY,
+async def create_msg_line_table(db, chat_id: int):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS messages_{chat_id} (
+ msg_id SERIAL PRIMARY KEY,
  text TEXT DEFAULT '0',
- description TEXT DEFAULT '0',
- lang TEXT DEFAULT 'en',
  from_id INTEGER DEFAULT 0,
  to_id INTEGER DEFAULT 0,
+ reply_id INTEGER DEFAULT 0,
  chat_id INTEGER DEFAULT 0,
- replay_id INTEGER DEFAULT 0,
  file_id INTEGER DEFAULT 0,
  file_type TEXT DEFAULT '0',
  status TEXT DEFAULT 'not_read',
- read_date timestamptz,
- deleted_date timestamptz,
- create_date timestamptz
+ read_date BIGINT DEFAULT 0,
+ deleted_date BIGINT DEFAULT 0,
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
+async def create_chats_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS chat (
+ chat_id SERIAL PRIMARY KEY,
+ owner_id INTEGER DEFAULT 0,
+ community_id INTEGER DEFAULT 0,
+ name TEXT DEFAULT '0',
+ img_url TEXT DEFAULT '0',
+ little_img_url TEXT DEFAULT '0',
+ status TEXT DEFAULT 'dialog',
+ open_profile BOOLEAN DEFAULT true,
+ send_media BOOLEAN DEFAULT true,
+ send_voice BOOLEAN DEFAULT true,
+ deleted_date BIGINT DEFAULT 0,
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
+async def create_dialog_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS dialog (
+ msg_chat_id BIGINT UNIQUE PRIMARY KEY,
+ owner_id INTEGER DEFAULT 0,
+ to_id INTEGER DEFAULT 0,
+ owner_status TEXT DEFAULT 'active',
+ to_status TEXT DEFAULT 'active',
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
+async def create_community_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS community (
+ community_id SERIAL PRIMARY KEY,
+ owner_id INTEGER DEFAULT 0,
+ name TEXT DEFAULT '0',
+ main_chat_id INTEGER DEFAULT 0,
+ join_code TEXT UNIQUE,
+ img_url TEXT DEFAULT '0',
+ little_img_url TEXT DEFAULT '0',
+ status TEXT DEFAULT 'open',
+ open_profile BOOLEAN DEFAULT true,
+ send_media BOOLEAN DEFAULT true,
+ send_voice BOOLEAN DEFAULT true,
+ deleted_date BIGINT DEFAULT 0,
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
+async def create_all_chats_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS all_chats (
+ id SERIAL PRIMARY KEY,
+ creator_id INTEGER DEFAULT 0,
+ chat_type TEXT DEFAULT 'dialog',
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
+async def create_users_chats_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS users_chat (
+ id SERIAL PRIMARY KEY,
+ chat_id INTEGER DEFAULT 0,
+ user_id INTEGER DEFAULT 0,
+ status TEXT DEFAULT 'user',
+ ban BOOLEAN DEFAULT false,
+ send_text BOOLEAN DEFAULT true,
+ send_media BOOLEAN DEFAULT true,
+ send_voice BOOLEAN DEFAULT true,
+ deleted_date BIGINT DEFAULT 0,
+ create_date BIGINT DEFAULT 0
  )''')
 
 
@@ -215,9 +293,39 @@ async def msg_to_user(db: Depends, user_id: int, msg_type: str, title: str, shor
     return data
 
 
+# Создаем много новых записей в таблице рассылки
+async def create_dialog(db: Depends, owner_id: int, to_id: int, msg_chat_id: int):
+    now = datetime.datetime.now()
+    data = await db.fetch(f"INSERT INTO dialog (msg_chat_id, owner_id, to_id, create_date) "
+                          f"VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING *;",
+                          msg_chat_id, owner_id, to_id, int(time.mktime(now.timetuple())))
+    return data
+
+
+# Создаем много новых записей в таблице all_chats
+async def create_in_all_chats(db: Depends, owner_id: int, chat_type: str = 'dialog'):
+    now = datetime.datetime.now()
+    data = await db.fetch(f"INSERT INTO all_chats (creator_id, chat_type, create_date) "
+                          f"VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING id;",
+                          owner_id, chat_type, int(time.mktime(now.timetuple())))
+    return data
+
+
 # получаем данные с одним фильтром
 async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = '*'):
     data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name} = $1;", id_data)
+    return data
+
+
+# получаем данные с одним фильтром
+async def get_dialog(db: Depends, from_id: int, to_id: int):
+    data = await db.fetch(f"SELECT * FROM dialog WHERE owner_id = $1 AND to_id = $2;", from_id, to_id)
+    return data
+
+
+# получаем данные с одним фильтром
+async def get_dialog_users(db: Depends, from_id: int, to_id: int):
+    data = await db.fetch(f"SELECT * FROM all_users WHERE user_id = $1 OR user_id = $2;", from_id, to_id)
     return data
 
 

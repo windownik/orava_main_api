@@ -25,8 +25,8 @@ async def initialization(connect):
 
 
 @app.post(path='/user', tags=['User'], responses=create_user_res)
-async def new_user(name: str, surname: str, midl_name: str, phone: int, lang: str, image_link: str,
-                   image_link_little: str, db=Depends(data_b.connection)):
+async def new_user(name: str, surname: str, phone: int, lang: str, image_link: str,
+                   image_link_little: str, midl_name: str = '0', db=Depends(data_b.connection)):
     """Create new user in server.
     name: users name\n
     midl_name:  users midl name\n

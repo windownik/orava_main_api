@@ -4,7 +4,7 @@ from fastapi import Depends
 from fastapi.responses import HTMLResponse
 
 from lib import sql_connect as conn
-from lib.sql_connect import data_b, app, create_msg_line_table
+from lib.sql_connect import data_b, app
 
 ip_server = os.environ.get("IP_SERVER")
 ip_port = os.environ.get("PORT_SERVER")
@@ -23,12 +23,17 @@ async def initialization(connect):
 async def init_database(db=Depends(data_b.connection)):
     """Here you can first initialise database"""
 
+    await conn.create_users_chats_table(db)
     await conn.create_all_users_table(db)
+    await conn.create_community_table(db)
+    await conn.create_all_chats_table(db)
     await conn.create_sms_code_table(db)
-    await conn.create_sending_table(db)
+    # await conn.create_sending_table(db)
+    await conn.create_dialog_table(db)
     await conn.create_token_table(db)
     await conn.create_files_table(db)
-    await create_msg_line_table(db)
+    await conn.create_chats_table(db)
+
     return {"ok": True}
 
 
