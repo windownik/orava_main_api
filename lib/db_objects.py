@@ -1,6 +1,9 @@
 import datetime
 
+from fastapi import Depends
 from pydantic import BaseModel
+
+from lib import sql_connect as conn
 
 
 class User(BaseModel):
@@ -20,53 +23,74 @@ class User(BaseModel):
     create_date: int
 
 
-class Message:
-    line_id: int = 0
-    msg_id: int = 0
-    msg_type: str = '0'
-    title: str = '0'
-    text: str = '0'
-    description: str = '0'
-    lang: str = '0'
-    from_user: User = None
-    to_user: User = None
+class File(BaseModel):
+    file_id: int = 0
+    file_type: str = '0'
+
+
+class Chat(BaseModel):
+    chat_id: int = 0
+    owner_user: User = None
+    name: str = '0'
+    img_url: str = '0'
+    little_img_url: str = '0'
     status: str = '0'
-    user_type: str = '0'
-    read_date: datetime.datetime = None
+    open_profile: bool = True
+    send_media: bool = True
+    send_voice: bool = True
     deleted_date: datetime.datetime = None
     create_date: datetime.datetime = None
 
-    def __init__(self, data: dict = None, user_from: dict = None, user_to: dict = None):
-        if data is not None:
-            self.line_id = data['id']
-            self.msg_id = data['msg_id']
-            self.msg_type = data['msg_type']
-            self.title = data['title']
-            self.text = data['text']
-            self.description = data['description']
-            self.lang = data['lang']
-            self.from_user = User(user_from) if user_from is not None else data['from_id']
-            self.to_user = User(user_to) if user_to is not None else data['to_id']
-            self.status = data['status']
-            self.user_type = data['user_type']
-            self.read_date: datetime.datetime = data['read_date'] if data['read_date'] is not None else None
-            self.deleted_date: datetime.datetime = data['deleted_date'] if data['deleted_date'] is not None else None
-            self.create_date: datetime.datetime = data['create_date'] if data['create_date'] is not None else None
 
-    def get_msg_json(self) -> dict:
-        return {
-            'id': self.line_id,
-            'msg_id': self.msg_id,
-            'msg_type': self.msg_type,
-            'title': self.title,
-            'text': self.text,
-            'description': self.description,
-            'lang': self.lang,
-            'from_user': self.from_user.get_user_json() if type(self.from_user) == User else self.from_user,
-            'to_user': self.to_user.get_user_json() if type(self.to_user) == User else self.to_user,
-            'status': self.status,
-            'user_type': self.user_type,
-            'read_date': str(self.read_date),
-            'deleted_date': str(self.deleted_date),
-            'create_date': str(self.create_date)
-        }
+class Dialog(BaseModel):
+    msg_chat_id: int = 0
+    owner_id: int = 0
+    to_id: int = 0
+    owner_status: str = '0'
+    to_status: str = '0'
+    create_date: int
+
+    async def to_json(self, db: Depends):
+        users_data = await conn.get_dialog_users(db=db, from_id=self.owner_id, to_id=self.to_id)
+        if users_data[0][0] == self.owner_id:
+            owner = User.parse_obj(users_data[0])
+            user_to = User.parse_obj(users_data[1])
+        else:
+            owner = User.parse_obj(users_data[1])
+            user_to = User.parse_obj(users_data[0])
+        resp = self.dict()
+        resp['owner'] = owner.dict()
+        resp['user_to'] = user_to.dict()
+        resp.pop('owner_id')
+        resp.pop('to_id')
+        return resp
+
+
+class Community(BaseModel):
+    community_id: int = 0
+    owner_user: User = None
+    name: str = '0'
+    main_chat: Chat = None
+    join_code: str = '0'
+    img_url: str = '0'
+    little_img_url: str = '0'
+    status: str = '0'
+    open_profile: bool = True
+    send_media: bool = True
+    send_voice: bool = True
+    deleted_date: datetime.datetime = None
+    create_date: datetime.datetime = None
+
+
+class Message(BaseModel):
+    msg_id: int = 0
+    text: str = '0'
+    replay_id: int = 0
+    from_user: User = None
+    to_user: User = None
+    chat: Chat = None
+    file: File = None
+    status: str = '0'
+    read_date: datetime.datetime = None
+    deleted_date: datetime.datetime = None
+    create_date: datetime.datetime = None
