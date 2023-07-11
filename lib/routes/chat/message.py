@@ -75,9 +75,8 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_text()
-            print(f'Message: {data}')
             await websocket.send_text(data)
-            # await manager.broadcast(data)
+            await manager.broadcast(data)
 
     except Exception as ex:
         print(ex)
