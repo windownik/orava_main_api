@@ -68,7 +68,7 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@app.websocket("/ws")
+@app.sio.on("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     print('Connect')

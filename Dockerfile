@@ -17,6 +17,8 @@ RUN pip3 install python-multipart
 RUN pip3 install firebase-admin
 RUN pip3 install pillow
 RUN pip3 install websockets
+RUN pip3 install python-socketio
+
 
 WORKDIR /main/
 COPY . /main/
