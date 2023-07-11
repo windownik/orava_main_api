@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import socketio
 
-fast_app = FastAPI()
+app = FastAPI()
 
 origins = [
     "*",
@@ -20,8 +20,8 @@ sio = socketio.AsyncServer(
     async_mode='asgi',
     cors_allowed_origins='*'
 )
-app = socketio.ASGIApp(
+fast_app = socketio.ASGIApp(
     socketio_server=sio,
-    other_asgi_app=fast_app,
+    other_asgi_app=app,
     socketio_path='/api/notifications/socket.io/'
 )
