@@ -1,3 +1,5 @@
+import json
+
 from fastapi import WebSocket, Depends
 from fastapi.responses import HTMLResponse
 from starlette.websockets import WebSocketDisconnect
@@ -57,7 +59,8 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
     print('Connect')
     try:
         while True:
-            data = await websocket.receive_json()
+            data = await websocket.receive_text()
+            data = json.loads(data)
             check = await check_message(data, db=db, user_id=user_id)
             if not check:
                 continue
