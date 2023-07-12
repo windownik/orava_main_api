@@ -141,4 +141,4 @@ class ReceiveMessage(BaseModel):
     create_date: int = int(time.mktime(datetime.datetime.now().timetuple()))
 
     def print_msg(self):
-        return self.model_dump()
+        return self.dict()
