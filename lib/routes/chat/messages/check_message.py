@@ -16,6 +16,7 @@ a = {
 
 
 async def check_message(msg: dict, db: Depends, user_id: int) -> bool | str:
+    print(msg.keys())
     if 'access_token' not in msg.keys():
         return False
     if 'msg_type' not in msg.keys():
