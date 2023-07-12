@@ -285,7 +285,7 @@ async def save_push_to_sending(db: Depends, msg_id: str, user_id: int, title: st
 async def save_dialog_msg(db: Depends, msg: dict):
 
     now = datetime.datetime.now()
-    data = await db.fetch(f"INSERT INTO message_{msg['msg_chat_id']} (text, from_id, to_id, reply_id, chat_id, "
+    data = await db.fetch(f"INSERT INTO messages_{msg['msg_chat_id']} (text, from_id, to_id, reply_id, chat_id, "
                           f"file_id, file_type, status, create_date) "
                           f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT DO NOTHING RETURNING msg_id;",
                           msg['text'], msg['from_id'], msg['to_id'], msg['reply_id'], msg['chat_id'], msg['file_id'],
