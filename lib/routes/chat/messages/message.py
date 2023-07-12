@@ -60,8 +60,11 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
     try:
         while True:
             data = await websocket.receive_text()
+            print(type(data), data)
             data = json.loads(data)
+            print(type(data), data)
             check = await check_message(data, db=db, user_id=user_id)
+
             if not check:
                 continue
             if check == 'bad access':
