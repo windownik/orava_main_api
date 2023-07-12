@@ -66,6 +66,14 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
             check = await check_message(data, db=db, user_id=user_id)
             print(check)
             if not check:
+                await websocket.send_json({
+                    "ok": False,
+                    'status_code': 401,
+                    'desc': 'not check message',
+                    "msg_chat_id": data["msg_chat_id"],
+                    "to_id": data["to_id"],
+                    "chat_id": data["to_id"],
+                })
                 continue
             if check == 'bad access':
                 await websocket.send_json({
