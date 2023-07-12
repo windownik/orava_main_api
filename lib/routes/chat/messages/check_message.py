@@ -41,7 +41,7 @@ async def check_message(msg: dict, db: Depends, user_id: int) -> bool | str:
     owner_id = await conn.get_token(db=db, token_type='access', token=msg["access_token"])
     if not owner_id:
         return 'bad access'
-
+    print(owner_id[0][0], msg['from_id'], user_id)
     if owner_id[0][0] != msg['from_id'] or owner_id[0][0] != user_id:
         return False
 
@@ -51,3 +51,26 @@ async def check_message(msg: dict, db: Depends, user_id: int) -> bool | str:
 async def save_msg_in_dialog(msg: dict, db: Depends) -> int:
     msg_id = await conn.save_dialog_msg(db=db, msg=msg)
     return msg_id[0][0]
+#
+# a = ['access_token', 'msg_chat_id', 'msg_type', 'text', 'from_id', 'to_id', 'reply_id', 'chat_id', 'file_id', 'file_type']
+#
+# if 'access_token' not in a:
+#     print(1)
+# if 'msg_type' not in a:
+#     print(2)
+# if 'msg_chat_id' not in a:
+#     print(3)
+# if 'text' not in a:
+#     print(4)
+# if 'from_id' not in a:
+#     print(5)
+# if 'to_id' not in a:
+#     print(6)
+# if 'reply_id' not in a:
+#     print(7)
+# if 'chat_id' not in a:
+#     print(8)
+# if 'file_id' not in a:
+#     print(9)
+# if 'file_type' not in a:
+#     print(10)
