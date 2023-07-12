@@ -282,14 +282,14 @@ async def save_push_to_sending(db: Depends, msg_id: str, user_id: int, title: st
 
 
 # Создаем много новых записей в таблице рассылки
-async def msg_to_user(db: Depends, user_id: int, msg_type: str, title: str, short_text: str, description: str,
-                      from_id: int):
+async def save_dialog_msg(db: Depends, msg: dict):
+
     now = datetime.datetime.now()
-    data = await db.fetch(f"INSERT INTO message_line (msg_type, title, text, description, from_id, to_id, "
-                          f"user_type, create_date) "
-                          f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT DO NOTHING RETURNING id;", msg_type,
-                          title,
-                          short_text, description, from_id, user_id, 'user', now)
+    data = await db.fetch(f"INSERT INTO message_{msg['msg_chat_id']} (text, from_id, to_id, reply_id, chat_id, "
+                          f"file_id, file_type, status, create_date) "
+                          f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT DO NOTHING RETURNING msg_id;",
+                          msg['text'], msg['from_id'], msg['to_id'], msg['reply_id'], msg['chat_id'], msg['file_id'],
+                          msg['file_type'], 'unread', int(time.mktime(now.timetuple())))
     return data
 
 
@@ -333,6 +333,15 @@ async def get_dialog_users(db: Depends, from_id: int, to_id: int):
 async def get_users_dialogs(db: Depends, user_id: int,):
     data = await db.fetch(f"SELECT * FROM dialog WHERE (owner_id = $1 AND owner_status = 'active') "
                           f"OR (to_id = $2 AND to_status = 'active');", user_id, user_id)
+    return data
+
+
+# получаем данные с одним фильтром
+async def get_users_unread_messages(db: Depends, user_id: int, msg_chat_id: int):
+    data = await db.fetch(f"SELECT * FROM messages_{msg_chat_id} "
+                          f"WHERE to_id = $1 "
+                          f"AND read_date = 0 "
+                          f"AND deleted_date = 0 ORDER BY create_date;", user_id)
     return data
 
 

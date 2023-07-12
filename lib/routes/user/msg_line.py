@@ -23,67 +23,67 @@ async def initialization(connect):
     # you can run your db initialization code here
     await connect.execute("SELECT 1")
 
-
-# Create new msg
-@app.post(path='/message', tags=['Message'], responses=new_msg_created_res)
-async def create_new_messages(access_token: str, to_user_id: int, title: str, text: str, description: str,
-                              user_type: str = 'user', lang: str = 'en',
-                              msg_type: str = 'text', msg_id: int = 0, push: bool = False,
-                              db=Depends(data_b.connection)):
-    """
-    Use this route for creating new message\n\n
-
-    description: short text\n
-    text: main text of message\n
-    title: title of message\n
-    msg_id: id of new document or another main document. Send 0 if only text message\n
-    access_token: user's access token in our service\n
-    to_user_id: user_id for personal msg sending for all users send value 0\n
-    user_type: can be 'user', 'admin', 'all'\n
-    push: Send True for sending push notification\n
-    lang: Can be 'en', 'ru', 'he'\n
-    msg_type: Can be 'text', 'img', 'new_user', 'new_order'\n
-    _____________\n
-    'text' - Просто текстовое сообщение отправляемое от одного пользователя другому или в рассылке\n
-    'img' - Просто графическое сообщение отправляемое от одного пользователя другому или в рассылке\n
-    'new_user' - Автоматически созданное сообщение при регистрации нового пользователя msg_id в таком сообщении
-    равен user_id нового пользователя, to_id равен 0, user_type - admin\n
-    'new_order' - Автоматически созданное сообщение при создании нового заказа msg_id в таком сообщении
-    равен order_id нового заказа, to_id равен 0, user_type - admin\n
-    'new_order_admin_comment' - Комментарий отправленный админом пользователю при модерации ордера\n
-    """
-    from_id = await conn.get_token(db=db, token_type='access', token=access_token)
-    if not from_id:
-        return JSONResponse(content={"ok": False, "desc": "bad access token"},
-                            status_code=_status.HTTP_401_UNAUTHORIZED)
-
-    user_data = await conn.read_data(db=db, name='status', table='all_users', id_name='user_id',
-                                     id_data=to_user_id)
-    if not user_data and to_user_id != 0:
-        return JSONResponse(content={"ok": False, "desc": "Bad to_user_id"},
-                            status_code=_status.HTTP_400_BAD_REQUEST)
-
-    if user_type not in ('user', 'admin', 'all'):
-        return JSONResponse(content={"ok": False, "desc": "Bad user_type"},
-                            status_code=_status.HTTP_400_BAD_REQUEST)
-
-    if lang not in ('en', 'ru', 'he'):
-        return JSONResponse(content={"ok": False, "desc": "Bad lang"},
-                            status_code=_status.HTTP_400_BAD_REQUEST)
-
-    msg_id = await conn.create_msg(msg_id=msg_id, msg_type=msg_type, title=title, text=text, description=description,
-                                   lang=lang, from_id=from_id[0][0], to_id=to_user_id, user_type=user_type, db=db)
-    if msg_id is None:
-        return JSONResponse(content={"ok": False, "desc": "I can't create this message"},
-                            status_code=_status.HTTP_400_BAD_REQUEST)
-    if push:
-        await send_push_notification(access_token=access_token, user_id=to_user_id, title=title, push_body=text,
-                                     push_type='text_msg', msg_id=msg_id[0][0], db=db)
-
-    return JSONResponse(content={"ok": True, 'desc': 'New message was created successfully.'},
-                        status_code=_status.HTTP_200_OK,
-                        headers={'content-type': 'application/json; charset=utf-8'})
-
+#
+# # Create new msg
+# @app.post(path='/message', tags=['Message'], responses=new_msg_created_res)
+# async def create_new_messages(access_token: str, to_user_id: int, title: str, text: str, description: str,
+#                               user_type: str = 'user', lang: str = 'en',
+#                               msg_type: str = 'text', msg_id: int = 0, push: bool = False,
+#                               db=Depends(data_b.connection)):
+#     """
+#     Use this route for creating new message\n\n
+#
+#     description: short text\n
+#     text: main text of message\n
+#     title: title of message\n
+#     msg_id: id of new document or another main document. Send 0 if only text message\n
+#     access_token: user's access token in our service\n
+#     to_user_id: user_id for personal msg sending for all users send value 0\n
+#     user_type: can be 'user', 'admin', 'all'\n
+#     push: Send True for sending push notification\n
+#     lang: Can be 'en', 'ru', 'he'\n
+#     msg_type: Can be 'text', 'img', 'new_user', 'new_order'\n
+#     _____________\n
+#     'text' - Просто текстовое сообщение отправляемое от одного пользователя другому или в рассылке\n
+#     'img' - Просто графическое сообщение отправляемое от одного пользователя другому или в рассылке\n
+#     'new_user' - Автоматически созданное сообщение при регистрации нового пользователя msg_id в таком сообщении
+#     равен user_id нового пользователя, to_id равен 0, user_type - admin\n
+#     'new_order' - Автоматически созданное сообщение при создании нового заказа msg_id в таком сообщении
+#     равен order_id нового заказа, to_id равен 0, user_type - admin\n
+#     'new_order_admin_comment' - Комментарий отправленный админом пользователю при модерации ордера\n
+#     """
+#     from_id = await conn.get_token(db=db, token_type='access', token=access_token)
+#     if not from_id:
+#         return JSONResponse(content={"ok": False, "desc": "bad access token"},
+#                             status_code=_status.HTTP_401_UNAUTHORIZED)
+#
+#     user_data = await conn.read_data(db=db, name='status', table='all_users', id_name='user_id',
+#                                      id_data=to_user_id)
+#     if not user_data and to_user_id != 0:
+#         return JSONResponse(content={"ok": False, "desc": "Bad to_user_id"},
+#                             status_code=_status.HTTP_400_BAD_REQUEST)
+#
+#     if user_type not in ('user', 'admin', 'all'):
+#         return JSONResponse(content={"ok": False, "desc": "Bad user_type"},
+#                             status_code=_status.HTTP_400_BAD_REQUEST)
+#
+#     if lang not in ('en', 'ru', 'he'):
+#         return JSONResponse(content={"ok": False, "desc": "Bad lang"},
+#                             status_code=_status.HTTP_400_BAD_REQUEST)
+#
+#     msg_id = await conn.create_msg(msg_id=msg_id, msg_type=msg_type, title=title, text=text, description=description,
+#                                    lang=lang, from_id=from_id[0][0], to_id=to_user_id, user_type=user_type, db=db)
+#     if msg_id is None:
+#         return JSONResponse(content={"ok": False, "desc": "I can't create this message"},
+#                             status_code=_status.HTTP_400_BAD_REQUEST)
+#     if push:
+#         await send_push_notification(access_token=access_token, user_id=to_user_id, title=title, push_body=text,
+#                                      push_type='text_msg', msg_id=msg_id[0][0], db=db)
+#
+#     return JSONResponse(content={"ok": True, 'desc': 'New message was created successfully.'},
+#                         status_code=_status.HTTP_200_OK,
+#                         headers={'content-type': 'application/json; charset=utf-8'})
+#
 
 # Admin get all messages
 @app.get(path='/admin_get_msg', tags=['Message'], responses=get_me_res)

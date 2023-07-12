@@ -1,4 +1,5 @@
 import datetime
+import time
 
 from fastapi import Depends
 from pydantic import BaseModel
@@ -42,6 +43,37 @@ class Chat(BaseModel):
     create_date: datetime.datetime = None
 
 
+class Message(BaseModel):
+    msg_chat_id: int = 0
+    text: str = '0'
+
+    from_id: int = 0
+    to_id: int = 0
+    reply_id: int = 0
+
+    chat_id: int = 0
+    file_id: int = 0
+    status: str = '0'
+    read_date: int = 0
+    deleted_date: int = 0
+    create_date: int = 0
+
+    def to_dialog(self):
+        return {
+            "msg_chat_id": self.msg_chat_id,
+            "text": self.text,
+            "from_id": self.from_id,
+            "to_id": self.to_id,
+            "replay_id": self.replay_id,
+            "chat_id": self.chat_id,
+            "file_id": self.file_id,
+            "status": self.status,
+            "read_date": self.read_date,
+            "deleted_date": self.deleted_date,
+            "create_date": self.create_date,
+        }
+
+
 class Dialog(BaseModel):
     msg_chat_id: int = 0
     owner_id: int = 0
@@ -59,9 +91,17 @@ class Dialog(BaseModel):
             user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.owner_id, db=db)
             self.to_status = self.owner_status
 
-        user_to = User.parse_obj(user_data[0])
-        resp = self.dict()
-        resp['user_to'] = user_to.dict()
+        messages_data = await conn.get_users_unread_messages(msg_chat_id=self.msg_chat_id, user_id=user_id, db=db)
+
+        unread_msg = []
+        for one in messages_data:
+            msg = Message.model_validate(one)
+            unread_msg.append(msg.to_dialog())
+
+        user_to = User.model_validate(user_data[0])
+        resp = self.model_dump()
+        resp['user_to'] = user_to.model_dump()
+        resp['unread_msg'] = unread_msg
         resp.pop('owner_id')
         resp.pop('to_id')
         resp.pop('owner_status')
@@ -84,15 +124,21 @@ class Community(BaseModel):
     create_date: datetime.datetime = None
 
 
-class Message(BaseModel):
-    msg_id: int = 0
+class ReceiveMessage(BaseModel):
+    access_token: str = 0
+
+    msg_chat_id: int = 0
+    msg_type: str = '0'
     text: str = '0'
-    replay_id: int = 0
-    from_user: User = None
-    to_user: User = None
-    chat: Chat = None
-    file: File = None
+    from_id: int = 0
+    to_id: int = 0
+    reply_id: int = 0
+
+    chat_id: int = 0
+    file_id: int = 0
     status: str = '0'
-    read_date: datetime.datetime = None
-    deleted_date: datetime.datetime = None
-    create_date: datetime.datetime = None
+    file_type: str = '0'
+    create_date: int = int(time.mktime(datetime.datetime.now().timetuple()))
+
+    def print_msg(self):
+        return self.model_dump()
