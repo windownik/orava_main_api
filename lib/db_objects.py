@@ -95,12 +95,12 @@ class Dialog(BaseModel):
 
         unread_msg = []
         for one in messages_data:
-            msg = Message.model_validate(one)
+            msg = Message.parse_obj(one)
             unread_msg.append(msg.to_dialog())
 
         user_to = User.model_validate(user_data[0])
-        resp = self.model_dump()
-        resp['user_to'] = user_to.model_dump()
+        resp = self.dict()
+        resp['user_to'] = user_to.dict()
         resp['unread_msg'] = unread_msg
         resp.pop('owner_id')
         resp.pop('to_id')
