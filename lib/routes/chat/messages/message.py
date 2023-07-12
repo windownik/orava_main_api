@@ -78,7 +78,8 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
                 })
                 continue
 
-            msg = ReceiveMessage.model_validate(data)
+            msg = ReceiveMessage.parse_obj(data)
+            print(2)
             print(msg.print_msg())
 
             if data['msg_type'] == 'dialog':
