@@ -98,7 +98,7 @@ class Dialog(BaseModel):
             msg = Message.parse_obj(one)
             unread_msg.append(msg.to_dialog())
 
-        user_to = User.model_validate(user_data[0])
+        user_to = User.parse_obj(user_data[0])
         resp = self.dict()
         resp['user_to'] = user_to.dict()
         resp['unread_msg'] = unread_msg
