@@ -2,7 +2,6 @@ import json
 
 from fastapi import WebSocket, Depends
 from fastapi.responses import HTMLResponse
-from starlette.websockets import WebSocketDisconnect
 
 from lib.app_init import app
 from lib.db_objects import ReceiveMessage
@@ -60,11 +59,9 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
     try:
         while True:
             data = await websocket.receive_text()
-            print(type(data), data)
             data = json.loads(data)
-            print(type(data), data)
             check = await check_message(data, db=db, user_id=user_id)
-            print(check)
+
             if not check:
                 await websocket.send_json({
                     "ok": False,
@@ -87,8 +84,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
                 continue
 
             msg = ReceiveMessage.parse_obj(data)
-            print(2)
-            print(msg.print_msg())
 
             if data['msg_type'] == 'dialog':
                 msg_id = await save_msg_in_dialog(data, db=db)
@@ -99,9 +94,9 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
                 "ok": True,
                 'status_code': 200,
                 'desc': 'save and send to user',
-                "msg_chat_id": data["msg_chat_id"],
-                "to_id": data["to_id"],
-                "chat_id": data["to_id"],
+                "msg_chat_id": msg.msg_chat_id,
+                "to_id": msg.to_id,
+                "chat_id": msg.to_id,
                 "new_msg_id": msg_id
             })
 
