@@ -45,6 +45,8 @@ class Chat(BaseModel):
 
 class Message(BaseModel):
     msg_chat_id: int = 0
+    msg_id: int = 0
+    msg_type: int = 0
     text: str = '0'
 
     from_id: int = 0
@@ -61,10 +63,11 @@ class Message(BaseModel):
     def to_dialog(self):
         return {
             "msg_chat_id": self.msg_chat_id,
+            "msg_type": self.msg_type,
             "text": self.text,
             "from_id": self.from_id,
             "to_id": self.to_id,
-            "replay_id": self.replay_id,
+            "replay_id": self.reply_id,
             "chat_id": self.chat_id,
             "file_id": self.file_id,
             "status": self.status,
@@ -72,6 +75,9 @@ class Message(BaseModel):
             "deleted_date": self.deleted_date,
             "create_date": self.create_date,
         }
+
+    def update_msg_id(self, msg_id: int):
+        self.msg_id = msg_id
 
 
 class Dialog(BaseModel):

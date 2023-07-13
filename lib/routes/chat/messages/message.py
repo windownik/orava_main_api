@@ -4,8 +4,7 @@ from fastapi import WebSocket, Depends
 from fastapi.responses import HTMLResponse
 
 from lib.app_init import app
-from lib.db_objects import ReceiveMessage
-from lib.routes.chat.messages.check_message import check_message, save_msg_in_dialog
+from lib.routes.chat.messages.check_message import check_message
 from lib.routes.chat.messages.connection_manager import manager
 from lib.sql_connect import data_b
 
@@ -60,45 +59,10 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
         while True:
             data = await websocket.receive_text()
             data = json.loads(data)
-            check = await check_message(data, db=db, user_id=user_id)
+            check = await check_message(data, db=db, user_id=user_id, websocket=websocket, manager=manager)
 
             if not check:
-                await websocket.send_json({
-                    "ok": False,
-                    'status_code': 401,
-                    'desc': 'not check message',
-                    "msg_chat_id": data["msg_chat_id"],
-                    "to_id": data["to_id"],
-                    "chat_id": data["to_id"],
-                })
                 continue
-            if check == 'bad access':
-                await websocket.send_json({
-                    "ok": False,
-                    'status_code': 401,
-                    'desc': 'bad access',
-                    "msg_chat_id": data["msg_chat_id"],
-                    "to_id": data["to_id"],
-                    "chat_id": data["to_id"],
-                })
-                continue
-
-            msg = ReceiveMessage.parse_obj(data)
-
-            if data['msg_type'] == 'dialog':
-                msg_id = await save_msg_in_dialog(data, db=db)
-            else:
-                continue
-
-            await websocket.send_json({
-                "ok": True,
-                'status_code': 200,
-                'desc': 'save and send to user',
-                "msg_chat_id": msg.msg_chat_id,
-                "to_id": msg.to_id,
-                "chat_id": msg.to_id,
-                "new_msg_id": msg_id
-            })
 
     except Exception as ex:
         print(ex)

@@ -15,13 +15,3 @@ app.add_middleware(
     allow_methods=origins,
     allow_headers=["Origin, X-Requested-With, Content-Type, Accept"],
 )
-
-# sio = socketio.AsyncServer(
-#     async_mode='asgi',
-#     cors_allowed_origins='*'
-# )
-# fast_app = socketio.ASGIApp(
-#     socketio_server=sio,
-#     other_asgi_app=app,
-#     socketio_path='/api/notifications/socket.io/'
-# )
