@@ -1,6 +1,7 @@
 from fastapi import WebSocket, Depends
 from lib import sql_connect as conn
 from lib.db_objects import Message
+from lib.routes.chat.messages.connection_manager import ConnectionManager
 
 
 class SocketResp:
@@ -39,7 +40,8 @@ class SocketResp:
                              }
 
 
-async def check_message(msg: dict, db: Depends, user_id: int, websocket: WebSocket) -> bool | str:
+async def check_message(msg: dict, db: Depends, user_id: int, websocket: WebSocket,
+                        manager: ConnectionManager) -> bool | str:
     socket_resp = SocketResp()
     status = True
     if 'msg_type' not in msg.keys():
@@ -85,7 +87,7 @@ async def check_message(msg: dict, db: Depends, user_id: int, websocket: WebSock
         message.update_msg_id(msg_id[0][0])
         socket_resp.resp_200(message)
         await websocket.send_json(socket_resp.response_200)
-
+        await manager.broadcast_dialog(message)
         return False
 
     return False
