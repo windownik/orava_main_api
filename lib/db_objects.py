@@ -46,7 +46,7 @@ class Chat(BaseModel):
 class Message(BaseModel):
     msg_chat_id: int = 0
     msg_id: int = 0
-    msg_type: int = 0
+    msg_type: str = '0'
     text: str = '0'
 
     from_id: int = 0
