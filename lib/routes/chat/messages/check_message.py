@@ -19,6 +19,7 @@ class SocketResp:
         self.response_400 = {"ok": False,
                              'status_code': 400,
                              'desc': 'not check message',
+
                              "msg_chat_id": message.msg_chat_id,
                              "to_id": message.to_id,
                              "chat_id": message.chat_id, }
@@ -32,6 +33,7 @@ class SocketResp:
         self.message = new_message
         self.response_200 = {"ok": True,
                              'status_code': 200,
+                             "msg_type": "confirm delivery",
                              'desc': 'save and send to user',
                              "msg_chat_id": new_message.msg_chat_id,
                              "to_id": new_message.to_id,
