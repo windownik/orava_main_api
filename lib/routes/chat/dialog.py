@@ -7,7 +7,6 @@ from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
-from lib.db_objects import Dialog
 from lib.response_examples import *
 from lib.routes.chat.dialog_funcs import check_dialog_in_db
 from lib.sql_connect import data_b, app

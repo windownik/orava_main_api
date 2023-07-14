@@ -1,96 +1,128 @@
 from fastapi import WebSocket, Depends
 from lib import sql_connect as conn
-from lib.db_objects import Message
+from lib.db_objects import Message, ReceiveMessage
 from lib.routes.chat.messages.connection_manager import ConnectionManager
 
 
 class SocketResp:
-    message: Message
+    receive_msg: ReceiveMessage = None
     response_200: dict[str, int | bool | str]
-    response_400: dict[str, int | bool | str]
+    response_401: dict[str, int | bool | str]
+    response_400_rights: dict[str, int | bool | str]
+    response_200_confirm_receive: dict[str, int | bool | str]
 
     def __init__(self):
+        self.response_400_not_check = {"ok": False,
+                                       'status_code': 400,
+                                       "msg_type": "system",
+                                       'desc': 'not check message'}
+
+    def update_message(self, receive_msg: ReceiveMessage):
+        self.receive_msg = receive_msg
+
         self.response_401 = {"ok": False,
                              'status_code': 401,
+                             'msg_client_id': receive_msg.msg_client_id,
+                             "msg_type": "system",
                              'desc': 'bad access'}
 
-    def with_message(self, message: Message):
-        self.message = message
-        self.response_400 = {"ok": False,
+        self.response_401 = {"ok": False,
                              'status_code': 400,
-                             'desc': 'not check message',
+                             'msg_client_id': receive_msg.msg_client_id,
+                             "msg_type": "system",
+                             'desc': 'not enough rights'}
 
-                             "msg_chat_id": message.msg_chat_id,
-                             "to_id": message.to_id,
-                             "chat_id": message.chat_id, }
+        self.response_200_confirm_receive = {"ok": True,
+                                             'status_code': 200,
+                                             'msg_client_id': receive_msg.msg_client_id,
+                                             "msg_type": "confirm delivery",
+                                             'desc': 'success receive'}
 
-    def not_check(self):
-        self.response_400 = {"ok": False,
-                             'status_code': 400,
-                             'desc': 'not check message'}
-
-    def resp_200(self, new_message: Message):
-        self.message = new_message
         self.response_200 = {"ok": True,
                              'status_code': 200,
-                             "msg_type": "confirm delivery",
+                             "msg_type": "send_message",
                              'desc': 'save and send to user',
-                             "msg_chat_id": new_message.msg_chat_id,
-                             "to_id": new_message.to_id,
-                             "chat_id": new_message.chat_id,
-                             "new_msg_id": new_message.chat_id,
+                             "body": self.receive_msg.body.dict()
                              }
 
 
-async def check_message(msg: dict, db: Depends, user_id: int, websocket: WebSocket,
-                        manager: ConnectionManager) -> bool | str:
+example_message = {
+    'access_token': 'fnriverino',
+    'msg_client_id': 12,
+    'msg_type': 'chat_message',
+    'body': {
+        'msg_id': 2132,
+        'text': 'Text of this message',
+        'from_id': 32,
+        'reply_id': 342,
+        'chat_id': 65,
+        'file_id': 0,
+        'status': 'not_read',
+        'read_date': 0,
+        'deleted_date': 0,
+        'create_date': 124321412,
+    }
+}
+
+
+def check_msg(msg: dict):
+    for key in example_message.keys():
+        if key not in msg.keys():
+            return False
+
+    for key in example_message['body'].keys():
+        if key not in msg['body'].keys():
+            return False
+    return True
+
+
+async def msg_manager(msg: dict, db: Depends, user_id: int, websocket: WebSocket,
+                      manager: ConnectionManager):
+    # Проверяем структуру сообщения
     socket_resp = SocketResp()
-    status = True
-    if 'msg_type' not in msg.keys():
-        return False
-    if msg['msg_type'] == 'echo':
-        await websocket.send_json(msg)
-        return True
+    if not check_msg(msg):
+        await websocket.send_json(socket_resp.response_400_not_check)
+        return
 
-    if 'access_token' not in msg.keys():
-        status = False
-    if 'msg_chat_id' not in msg.keys():
-        status = False
-    if 'text' not in msg.keys():
-        status = False
-    if 'from_id' not in msg.keys():
-        status = False
-    if 'to_id' not in msg.keys():
-        status = False
-    if 'reply_id' not in msg.keys():
-        status = False
-    if 'chat_id' not in msg.keys():
-        status = False
-    if 'file_id' not in msg.keys():
-        status = False
-    if 'file_type' not in msg.keys():
-        status = False
+    receive_msg = ReceiveMessage.parse_obj(msg)
+    socket_resp.update_message(receive_msg)
 
-    if not status:
-        await websocket.send_json(socket_resp.not_check())
-    message = Message.parse_obj(msg)
+    # Проверяем права доступа на сообщение
+    owner_id = await conn.get_token(db=db, token_type='access', token=receive_msg.access_token)
 
-    owner_id = await conn.get_token(db=db, token_type='access', token=msg["access_token"])
     if not owner_id:
-        return 'bad access'
+        await websocket.send_json(socket_resp.response_401)
+        return
 
-    if owner_id[0][0] != msg['from_id'] or owner_id[0][0] != user_id:
-        socket_resp.with_message(message)
-        await websocket.send_json(socket_resp.response_400)
+    msg_id = await conn.save_msg(db=db, msg=msg['body'])
+
+    msg['body']['msg_id'] = msg_id[0][0]
+
+    receive_msg = ReceiveMessage.parse_obj(msg)
+    socket_resp.update_message(receive_msg)
+
+    user_in_chat = await conn.check_user_in_chat(db=db, user_id=user_id, chat_id=receive_msg.body.chat_id)
+    if not user_in_chat:
+        await websocket.send_json(socket_resp.response_400_rights)
         return False
 
-    if message.msg_type == 'dialog':
-        msg_id = await conn.save_dialog_msg(db=db, msg=msg)
-        message.update_msg_id(msg_id[0][0])
-        socket_resp.resp_200(message)
-        await websocket.send_json(socket_resp.response_200)
-        await manager.broadcast_dialog(message)
-        return False
+    all_users = await conn.read_data(table='users_chat', id_name='chat_id',
+                                     id_data=receive_msg.body.chat_id, db=db)
+    for user in all_users:
+        if user[0] == user_id:
+            continue
 
-    return False
+        # Обрабатываем случай когда пользователь онлайн
+        if user[0] in manager.connections.keys():
+            connect = manager.connections[user[0]]
+            connect.send_json(socket_resp.response_200)
 
+        # Обрабатываем случай когда пользователь офлайн. Просто записываем в таблицу рассылки пушей
+        else:
+            if user['push_sent']:
+                continue
+            else:
+                await conn.update_users_chat_push(db=db, chat_id=receive_msg.body.chat_id, user_id=user['user_id'])
+                await conn.save_push_to_sending(db=db, msg_id=f"{receive_msg.body.msg_id}", push_type='message',
+                                                title=f'Новое сообщение',
+                                                short_text='У вас новое сообщение в чате: ', user_id=user['user_id'])

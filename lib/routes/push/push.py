@@ -52,6 +52,7 @@ async def user_update_push_token(access_token: str, push_token: str, db=Depends(
     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not user_id:
         return Response(content="not enough rights", status_code=_status.HTTP_401_UNAUTHORIZED)
+
     user_id = user_id[0][0]
     await conn.update_data(db=db, table='all_users', name='push', data=push_token, id_name='user_id', id_data=user_id)
 

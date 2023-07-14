@@ -6,7 +6,7 @@ from lib.db_objects import Message
 
 class ConnectionManager:
     def __init__(self):
-        self.connections: dict = {}
+        self.connections: dict = {int: WebSocket}
 
     async def connect(self, websocket: WebSocket, user_id: int):
         await websocket.accept()

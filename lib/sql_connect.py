@@ -236,21 +236,34 @@ async def save_new_sms_code(db: Depends, phone: int, code: str):
 
 
 # Создаем много новых записей в таблице рассылки
-async def save_push_to_sending(db: Depends, msg_id: str, user_id: int, title: str, short_text: str, main_text: str,
-                               img_url: str, push_type: str):
+async def save_push_to_sending(db: Depends, msg_id: str, user_id: int, title: str, short_text: str, push_type: str,
+                               main_text: str = 0, img_url: str = 0):
     sql = f"INSERT INTO sending (user_id, title, short_text, main_text, img_url, push_type, msg_line_id) " \
           f"VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING;"
     await db.fetch(sql, user_id, title, short_text, main_text, img_url, push_type, msg_id)
 
 
+'''CREATE TABLE IF NOT EXISTS messages (
+ msg_id BIGSERIAL PRIMARY KEY,
+ text TEXT DEFAULT '0',
+ from_id INTEGER DEFAULT 0,
+ reply_id INTEGER DEFAULT 0,
+ chat_id INTEGER DEFAULT 0,
+ file_id INTEGER DEFAULT 0,
+ status TEXT DEFAULT 'not_read',
+ read_date BIGINT DEFAULT 0,
+ deleted_date BIGINT DEFAULT 0,
+ create_date BIGINT DEFAULT 0
+ )'''
+
+
 # Создаем много новых записей в таблице рассылки
-async def save_dialog_msg(db: Depends, msg: dict):
+async def save_msg(db: Depends, msg: dict):
     now = datetime.datetime.now()
-    data = await db.fetch(f"INSERT INTO messages (text, from_id, to_id, reply_id, chat_id, "
-                          f"file_id, file_type, status, create_date) "
+    data = await db.fetch(f"INSERT INTO messages (text, from_id, reply_id, chat_id, file_id, status, create_date) "
                           f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT DO NOTHING RETURNING msg_id;",
-                          msg['text'], msg['from_id'], msg['to_id'], msg['reply_id'], msg['chat_id'], msg['file_id'],
-                          msg['file_type'], 'unread', int(time.mktime(now.timetuple())))
+                          msg['text'], msg['from_id'], msg['reply_id'], msg['chat_id'], msg['file_id'],
+                          int(time.mktime(now.timetuple())))
     return data
 
 
@@ -296,12 +309,23 @@ async def get_users_chats(db: Depends, user_id: int):
                           f"all_chats.send_media, all_chats.send_voice, all_chats.deleted_date, all_chats.create_date "
                           f"FROM users_chat JOIN all_chats "
                           f"ON users_chat.chat_id = all_chats.chat_id "
-                          f"WHERE users_chat.user_id = $1 AND all_chats.chat_type != 'delete';", user_id, )
+                          f"WHERE users_chat.user_id = $1 AND all_chats.status != 'delete';", user_id, )
+    return data
+
+
+# получаем данные с одним фильтром
+async def check_user_in_chat(db: Depends, user_id: int, chat_id: int):
+    data = await db.fetch(f"SELECT users_chat.chat_id "
+                          f"FROM users_chat JOIN all_chats "
+                          f"ON users_chat.chat_id = all_chats.chat_id "
+                          f"WHERE users_chat.user_id = $1 "
+                          f"AND users_chat.chat_id = $2 "
+                          f"AND all_chats.status != 'delete';", user_id, chat_id)
     return data
 
 
 # получаем 20 не прочитанных сообщений
-async def get_users_unread_messages(db: Depends, chat_id: int,):
+async def get_users_unread_messages(db: Depends, chat_id: int, ):
     data = await db.fetch(f"SELECT * FROM messages "
                           f"WHERE chat_id = $1 "
                           f"AND read_date = 0 "
@@ -310,7 +334,7 @@ async def get_users_unread_messages(db: Depends, chat_id: int,):
 
 
 # получаем данные с одним фильтром
-async def get_users_unread_messages_count(db: Depends, chat_id: int,):
+async def get_users_unread_messages_count(db: Depends, chat_id: int, ):
     data = await db.fetch(f"SELECT COUNT(*) FROM messages "
                           f"WHERE chat_id = $1 "
                           f"AND read_date = 0 "
@@ -457,6 +481,18 @@ async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang
 async def update_data(db: Depends, table: str, name: str, id_data, data, id_name: str = 'id'):
     await db.execute(f"UPDATE {table} SET {name}=$1 WHERE {id_name}=$2;",
                      data, id_data)
+
+
+# Обновляем информацию
+async def update_users_chat_push(db: Depends, chat_id: int, user_id: int):
+    await db.execute(f"UPDATE users_chats SET push_sent=$1 WHERE chat_id=$2 AND user_id=$3;",
+                     True, chat_id, user_id)
+
+
+# Обновляем информацию
+async def clear_users_chat_push(db: Depends, user_id: int):
+    await db.execute(f"UPDATE users_chat SET push_sent=$1 WHERE user_id=$2;",
+                     False, user_id)
 
 
 # Обновляем информацию

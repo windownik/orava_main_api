@@ -5,7 +5,7 @@ from fastapi import WebSocket, Depends
 from fastapi.responses import HTMLResponse
 
 from lib.app_init import app
-from lib.routes.chat.messages.check_message import check_message
+from lib.routes.chat.messages.check_message import msg_manager
 from lib.routes.chat.messages.connection_manager import manager
 from lib.sql_connect import data_b
 
@@ -60,7 +60,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
         while True:
             data = await websocket.receive_text()
             data = json.loads(data)
-            check = await check_message(data, db=db, user_id=user_id, websocket=websocket, manager=manager)
+            check = await msg_manager(data, db=db, user_id=user_id, websocket=websocket, manager=manager)
 
             if not check:
                 continue

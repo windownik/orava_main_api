@@ -155,19 +155,7 @@ class Community(BaseModel):
 
 class ReceiveMessage(BaseModel):
     access_token: str = 0
-
-    msg_chat_id: int = 0
+    msg_client_id: int = 0
     msg_type: str = '0'
-    text: str = '0'
-    from_id: int = 0
-    to_id: int = 0
-    reply_id: int = 0
+    body: Message = None
 
-    chat_id: int = 0
-    file_id: int = 0
-    status: str = '0'
-    file_type: str = '0'
-    create_date: int = int(time.mktime(datetime.datetime.now().timetuple()))
-
-    def print_msg(self):
-        return self.dict()

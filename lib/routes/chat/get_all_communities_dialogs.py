@@ -26,6 +26,9 @@ async def get_all_communities_chats_dialogs(access_token: str, db=Depends(data_b
     if not owner_id:
         return Response(content="bad access token",
                         status_code=_status.HTTP_401_UNAUTHORIZED)
+    # Очищаем пуш метки
+    await conn.clear_users_chat_push(db=db, user_id=owner_id[0][0])
+
     chats_data = await conn.get_users_chats(user_id=owner_id[0][0], db=db)
     list_chats = []
     for chat_data in chats_data:
