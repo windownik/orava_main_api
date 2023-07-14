@@ -21,6 +21,7 @@ async def check_dialog_in_db(from_id: int, to_id: int, db: Depends) -> Chat:
     if chat_id == 0:
         chat_data = await conn.create_chat(db=db, owner_id=from_id)
         await conn.save_user_to_chat(db=db, chat_id=chat_data[0][0], user_id=to_id)
+        await conn.save_user_to_chat(db=db, chat_id=chat_data[0][0], user_id=from_id)
     else:
         chat_data = await conn.read_data(db=db, table='all_chats', id_name='chat_id', id_data=chat_id)
 
