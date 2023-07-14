@@ -42,8 +42,8 @@ class Chat(BaseModel):
     open_profile: bool = True
     send_media: bool = True
     send_voice: bool = True
-    deleted_date: datetime.datetime = None
-    create_date: datetime.datetime = None
+    deleted_date: int = None
+    create_date: int = None
 
     async def to_json(self, db: Depends):
         resp = self.dict()
@@ -61,7 +61,6 @@ class Chat(BaseModel):
         resp['unread_message'] = unread_message
         resp['unread_count'] = unread_count
         return resp
-
 
 
 class Message(BaseModel):
