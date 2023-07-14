@@ -5,7 +5,7 @@ from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
-from lib.db_objects import Dialog
+from lib.db_objects import Chat
 from lib.response_examples import *
 from lib.sql_connect import data_b, app
 
@@ -26,16 +26,14 @@ async def get_all_communities_chats_dialogs(access_token: str, db=Depends(data_b
     if not owner_id:
         return Response(content="bad access token",
                         status_code=_status.HTTP_401_UNAUTHORIZED)
-    dialogs_data = await conn.get_users_dialogs(user_id=owner_id[0][0], db=db)
-    list_dialogs = []
-    for dialog_data in dialogs_data:
-        dialog = Dialog.parse_obj(dialog_data)
-        list_dialogs.append(await dialog.to_json(db, user_id=owner_id[0][0]))
+    chats_data = await conn.get_users_chats(user_id=owner_id[0][0], db=db)
+    list_chats = []
+    for chat_data in chats_data:
+        chat = Chat.parse_obj(chat_data)
+        list_chats.append(await chat.to_json(db))
 
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
-                                 "dialogs": list_dialogs,
-                                 "communities": [],
-                                 "chats": []
+                                 "chats": list_chats,
                                  },
                         headers={'content-type': 'application/json; charset=utf-8'})

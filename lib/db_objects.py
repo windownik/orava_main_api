@@ -31,10 +31,13 @@ class File(BaseModel):
 
 class Chat(BaseModel):
     chat_id: int = 0
+    owner_id: int = 0
     owner_user: User = None
+    community_id: int = 0
     name: str = '0'
     img_url: str = '0'
     little_img_url: str = '0'
+    chat_type: str = 'dialog'
     status: str = '0'
     open_profile: bool = True
     send_media: bool = True
@@ -42,15 +45,35 @@ class Chat(BaseModel):
     deleted_date: datetime.datetime = None
     create_date: datetime.datetime = None
 
+    async def to_json(self, db: Depends):
+        resp = self.dict()
+        unread_message = []
+        unread_count = 0
+        if self.status == 'delete':
+            pass
+        else:
+            msg_data = await conn.get_users_unread_messages(db=db, chat_id=self.chat_id)
+            unread_count = (await conn.get_users_unread_messages_count(db=db, chat_id=self.chat_id))[0][0]
+            for one in msg_data:
+                msg = Message.parse_obj(one)
+                unread_message.append(msg.dict())
+
+        resp['unread_message'] = unread_message
+        resp['unread_count'] = unread_count
+        return resp
+
+
 
 class Message(BaseModel):
-    msg_chat_id: int = 0
+    """
+    msg_type: Может принимать значения 'new_message', 'system',
+    """
     msg_id: int = 0
-    msg_type: str = '0'
+    client_msg_id: int = 0
+    msg_type: str = 'new_message'
     text: str = '0'
 
     from_id: int = 0
-    to_id: int = 0
     reply_id: int = 0
 
     chat_id: int = 0
@@ -63,11 +86,11 @@ class Message(BaseModel):
     def to_dialog(self):
         return {
             "status_code": 200,
-            "msg_chat_id": self.msg_chat_id,
+            "msg_id": self.msg_id,
+            "client_msg_id": self.client_msg_id,
             "msg_type": self.msg_type,
             "text": self.text,
             "from_id": self.from_id,
-            "to_id": self.to_id,
             "replay_id": self.reply_id,
             "chat_id": self.chat_id,
             "file_id": self.file_id,

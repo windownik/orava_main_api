@@ -1,11 +1,13 @@
+import datetime
 import os
+import time
 
 import starlette.status as _status
 from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
-from lib.db_objects import Dialog, User
+from lib.db_objects import Dialog
 from lib.response_examples import *
 from lib.routes.chat.dialog_funcs import check_dialog_in_db
 from lib.sql_connect import data_b, app
@@ -35,52 +37,40 @@ async def new_dialog(access_token: str, to_id: int, db=Depends(data_b.connection
                                      'description': "Haven't user with to_id", })
 
     dialog = await check_dialog_in_db(from_id=owner_id[0][0], to_id=user_data[0][0], db=db)
-    if dialog is None:
-        chat_id = await conn.create_in_all_chats(db=db, owner_id=owner_id[0][0])
-        await conn.create_msg_line_table(db=db, chat_id=chat_id[0][0])
-        dialog_data = await conn.create_dialog(owner_id=owner_id[0][0], to_id=user_data[0][0], db=db,
-                                               msg_chat_id=chat_id[0][0])
-        dialog = Dialog.parse_obj(dialog_data[0])
-        await conn.update_data(table='dialog', name='owner_status', data='active', db=db, id_name='msg_chat_id',
-                               id_data=dialog.msg_chat_id)
-    else:
-        if dialog.owner_id == owner_id[0][0]:
-            await conn.update_data(table='dialog', name='owner_status', data='active', db=db, id_name='msg_chat_id',
-                                   id_data=dialog.msg_chat_id)
-        else:
-            await conn.update_data(table='dialog', name='to_status', data='active', db=db, id_name='msg_chat_id',
-                                   id_data=dialog.msg_chat_id)
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
-                                 "dialog": await dialog.to_json(db=db, user_id=owner_id[0][0])
+                                 "dialog": dialog.dict()
                                  },
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.delete(path='/dialog', tags=['Chat'], responses=dialog_created_res)
-async def delete_dialog(access_token: str, msg_chat_id: int, db=Depends(data_b.connection)):
+@app.delete(path='/chat', tags=['Chat'], responses=dialog_created_res)
+async def delete_dialog(access_token: str, chat_id: int, db=Depends(data_b.connection)):
+    """
+    Here owner can delete chat with all messages
+    """
     owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not owner_id:
         return Response(content="bad access token",
                         status_code=_status.HTTP_401_UNAUTHORIZED)
 
-    dialog_data = await conn.read_data(table='dialog', id_name='msg_chat_id', id_data=msg_chat_id, db=db)
-    if not dialog_data:
+    chat_data = await conn.read_data(table='all_chats', id_name='chat_id', id_data=chat_id, db=db)
+    if not chat_data:
         return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
                             content={"ok": False,
-                                     'description': "Haven't dialog with msg_chat_id", })
-    if dialog_data[0]['owner_id'] == owner_id[0][0]:
-        await conn.update_data(table='dialog', name='owner_status', data='delete', db=db, id_name='msg_chat_id',
-                               id_data=msg_chat_id)
-    elif dialog_data[0]['to_id'] == owner_id[0][0]:
-        await conn.update_data(table='dialog', name='to_status', data='delete', db=db, id_name='msg_chat_id',
-                               id_data=msg_chat_id)
-    else:
+                                     'description': "Haven't chat with chat_id", })
+    if owner_id[0][0] != chat_data[0]['owner_id']:
         return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
                             content={"ok": False,
                                      'description': "not enough rights", })
 
-    await conn.delete_from_table(db=db, table=f'messages_{msg_chat_id}')
+    await conn.update_data(table='all_chats', name='status', data='delete', db=db, id_name='chat_id',
+                           id_data=chat_data[0][0])
+    now = datetime.datetime.now()
+    await conn.update_data(table='all_chats', name='deleted_date', data=int(time.mktime(now.timetuple())), db=db, id_name='chat_id',
+                           id_data=chat_data[0][0])
+
+    await conn.delete_all_messages(db=db, chat_id=chat_data[0][0])
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
                                  "description": 'dialog and all messages was deleted'

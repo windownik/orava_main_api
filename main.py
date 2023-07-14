@@ -1,6 +1,5 @@
 import os
 
-import asyncpg
 import uvicorn
 from fastapi.openapi.utils import get_openapi
 

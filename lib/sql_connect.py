@@ -97,16 +97,14 @@ async def create_sending_table(db):
 
 # Создаем новую таблицу
 # Таблица для записи всех видов сообщений для всех пользователей
-async def create_msg_line_table(db, chat_id: int):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS messages_{chat_id} (
- msg_id SERIAL PRIMARY KEY,
+async def create_msg_line_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS messages (
+ msg_id BIGSERIAL PRIMARY KEY,
  text TEXT DEFAULT '0',
  from_id INTEGER DEFAULT 0,
- to_id INTEGER DEFAULT 0,
  reply_id INTEGER DEFAULT 0,
  chat_id INTEGER DEFAULT 0,
  file_id INTEGER DEFAULT 0,
- file_type TEXT DEFAULT '0',
  status TEXT DEFAULT 'not_read',
  read_date BIGINT DEFAULT 0,
  deleted_date BIGINT DEFAULT 0,
@@ -117,31 +115,19 @@ async def create_msg_line_table(db, chat_id: int):
 # Создаем новую таблицу
 # Таблица для записи всех видов сообщений для всех пользователей
 async def create_chats_table(db):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS chat (
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS all_chats (
  chat_id SERIAL PRIMARY KEY,
  owner_id INTEGER DEFAULT 0,
  community_id INTEGER DEFAULT 0,
  name TEXT DEFAULT '0',
  img_url TEXT DEFAULT '0',
  little_img_url TEXT DEFAULT '0',
- status TEXT DEFAULT 'dialog',
+ chat_type TEXT DEFAULT 'dialog',
+ status TEXT DEFAULT 'create',
  open_profile BOOLEAN DEFAULT true,
  send_media BOOLEAN DEFAULT true,
  send_voice BOOLEAN DEFAULT true,
  deleted_date BIGINT DEFAULT 0,
- create_date BIGINT DEFAULT 0
- )''')
-
-
-# Создаем новую таблицу
-# Таблица для записи всех видов сообщений для всех пользователей
-async def create_dialog_table(db):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS dialog (
- msg_chat_id BIGINT UNIQUE PRIMARY KEY,
- owner_id INTEGER DEFAULT 0,
- to_id INTEGER DEFAULT 0,
- owner_status TEXT DEFAULT 'active',
- to_status TEXT DEFAULT 'active',
  create_date BIGINT DEFAULT 0
  )''')
 
@@ -168,17 +154,6 @@ async def create_community_table(db):
 
 # Создаем новую таблицу
 # Таблица для записи всех видов сообщений для всех пользователей
-async def create_all_chats_table(db):
-    await db.execute(f'''CREATE TABLE IF NOT EXISTS all_chats (
- id SERIAL PRIMARY KEY,
- creator_id INTEGER DEFAULT 0,
- chat_type TEXT DEFAULT 'dialog',
- create_date BIGINT DEFAULT 0
- )''')
-
-
-# Создаем новую таблицу
-# Таблица для записи всех видов сообщений для всех пользователей
 async def create_users_chats_table(db):
     await db.execute(f'''CREATE TABLE IF NOT EXISTS users_chat (
  id SERIAL PRIMARY KEY,
@@ -189,6 +164,8 @@ async def create_users_chats_table(db):
  send_text BOOLEAN DEFAULT true,
  send_media BOOLEAN DEFAULT true,
  send_voice BOOLEAN DEFAULT true,
+ can_receive_push BOOLEAN DEFAULT true,
+ push_sent BOOLEAN DEFAULT false,
  deleted_date BIGINT DEFAULT 0,
  create_date BIGINT DEFAULT 0
  )''')
@@ -258,21 +235,6 @@ async def save_new_sms_code(db: Depends, phone: int, code: str):
     return file_id
 
 
-# Создаем новую запись в базе данных
-async def write_order(db: Depends, creator_id: int, city: str, street: str, house: str, longitudes: float,
-                      latitudes: float, object_type_id: int, object_type_name_ru: str, object_type_name_en: str,
-                      object_type_name_he: str, object_size: int, comment: str, start_work: datetime.datetime):
-    now = datetime.datetime.now()
-    order = await db.fetch(f"INSERT INTO orders (creator_id, city, street, house, longitudes, latitudes, "
-                           f"object_type_id, object_type_name_ru, object_type_name_en, object_type_name_he, "
-                           f"object_size, comment, start_work, create_date) "
-                           f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) "
-                           f"ON CONFLICT DO NOTHING RETURNING *;", creator_id, city, street, house, longitudes,
-                           latitudes, object_type_id, object_type_name_ru, object_type_name_en,
-                           object_type_name_he, object_size, comment, start_work, now)
-    return order
-
-
 # Создаем много новых записей в таблице рассылки
 async def save_push_to_sending(db: Depends, msg_id: str, user_id: int, title: str, short_text: str, main_text: str,
                                img_url: str, push_type: str):
@@ -283,9 +245,8 @@ async def save_push_to_sending(db: Depends, msg_id: str, user_id: int, title: st
 
 # Создаем много новых записей в таблице рассылки
 async def save_dialog_msg(db: Depends, msg: dict):
-
     now = datetime.datetime.now()
-    data = await db.fetch(f"INSERT INTO messages_{msg['msg_chat_id']} (text, from_id, to_id, reply_id, chat_id, "
+    data = await db.fetch(f"INSERT INTO messages (text, from_id, to_id, reply_id, chat_id, "
                           f"file_id, file_type, status, create_date) "
                           f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT DO NOTHING RETURNING msg_id;",
                           msg['text'], msg['from_id'], msg['to_id'], msg['reply_id'], msg['chat_id'], msg['file_id'],
@@ -293,21 +254,23 @@ async def save_dialog_msg(db: Depends, msg: dict):
     return data
 
 
-# Создаем много новых записей в таблице рассылки
-async def create_dialog(db: Depends, owner_id: int, to_id: int, msg_chat_id: int):
+# Создаем новый чат
+async def create_chat(db: Depends, owner_id: int, name: str = '0', img_url: str = '0', little_img_url: str = '0',
+                      chat_type: str = 'dialog', community_id: int = 0):
     now = datetime.datetime.now()
-    data = await db.fetch(f"INSERT INTO dialog (msg_chat_id, owner_id, to_id, create_date) "
-                          f"VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING *;",
-                          msg_chat_id, owner_id, to_id, int(time.mktime(now.timetuple())))
+    data = await db.fetch(f"INSERT INTO all_chats (owner_id, community_id, name, img_url, little_img_url, chat_type, "
+                          f"create_date) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING RETURNING *;",
+                          owner_id, community_id, name, img_url, little_img_url, chat_type,
+                          int(time.mktime(now.timetuple())))
     return data
 
 
-# Создаем много новых записей в таблице all_chats
-async def create_in_all_chats(db: Depends, owner_id: int, chat_type: str = 'dialog'):
+# Создаем новый чат
+async def save_user_to_chat(db: Depends, chat_id: int, user_id: int, status: str = 'user'):
     now = datetime.datetime.now()
-    data = await db.fetch(f"INSERT INTO all_chats (creator_id, chat_type, create_date) "
-                          f"VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING id;",
-                          owner_id, chat_type, int(time.mktime(now.timetuple())))
+    data = await db.fetch(f"INSERT INTO users_chat (chat_id, user_id, status, create_date) "
+                          f"VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING *;",
+                          chat_id, user_id, status, int(time.mktime(now.timetuple())))
     return data
 
 
@@ -318,30 +281,40 @@ async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = 
 
 
 # получаем данные с одним фильтром
-async def get_dialog(db: Depends, from_id: int, to_id: int):
-    data = await db.fetch(f"SELECT * FROM dialog WHERE owner_id = $1 AND to_id = $2;", from_id, to_id)
+async def get_users_dialog(db: Depends, user_id: int):
+    data = await db.fetch(f"SELECT users_chat.chat_id, all_chats.owner_id FROM users_chat JOIN all_chats "
+                          f"ON users_chat.chat_id = all_chats.chat_id "
+                          f"WHERE users_chat.user_id = $1 AND all_chats.chat_type = 'dialog';", user_id, )
     return data
 
 
 # получаем данные с одним фильтром
-async def get_dialog_users(db: Depends, from_id: int, to_id: int):
-    data = await db.fetch(f"SELECT * FROM all_users WHERE user_id = $1 OR user_id = $2;", from_id, to_id)
+async def get_users_chats(db: Depends, user_id: int):
+    data = await db.fetch(f"SELECT users_chat.chat_id, "
+                          f"all_chats.owner_id, all_chats.community_id, all_chats.name, all_chats.img_url,"
+                          f" all_chats.little_img_url, all_chats.chat_type, all_chats.status, all_chats.open_profile, "
+                          f"all_chats.send_media, all_chats.send_voice, all_chats.deleted_date, all_chats.create_date "
+                          f"FROM users_chat JOIN all_chats "
+                          f"ON users_chat.chat_id = all_chats.chat_id "
+                          f"WHERE users_chat.user_id = $1 AND all_chats.chat_type != 'delete';", user_id, )
     return data
 
 
-# получаем данные с одним фильтром
-async def get_users_dialogs(db: Depends, user_id: int,):
-    data = await db.fetch(f"SELECT * FROM dialog WHERE (owner_id = $1 AND owner_status = 'active') "
-                          f"OR (to_id = $2 AND to_status = 'active');", user_id, user_id)
-    return data
-
-
-# получаем данные с одним фильтром
-async def get_users_unread_messages(db: Depends, user_id: int, msg_chat_id: int):
-    data = await db.fetch(f"SELECT * FROM messages_{msg_chat_id} "
-                          f"WHERE to_id = $1 "
+# получаем 20 не прочитанных сообщений
+async def get_users_unread_messages(db: Depends, chat_id: int,):
+    data = await db.fetch(f"SELECT * FROM messages "
+                          f"WHERE chat_id = $1 "
                           f"AND read_date = 0 "
-                          f"AND deleted_date = 0 ORDER BY create_date;", user_id)
+                          f"AND deleted_date = 0 ORDER BY create_date DESC LIMIT 20;", chat_id)
+    return data
+
+
+# получаем данные с одним фильтром
+async def get_users_unread_messages_count(db: Depends, chat_id: int,):
+    data = await db.fetch(f"SELECT COUNT(*) FROM messages "
+                          f"WHERE chat_id = $1 "
+                          f"AND read_date = 0 "
+                          f"AND deleted_date = 0;", chat_id)
     return data
 
 
@@ -508,6 +481,11 @@ async def delete_old_tokens(db: Depends):
 # Удаляем токены
 async def delete_all_tokens(db: Depends, user_id: int):
     await db.execute(f"DELETE FROM token WHERE user_id = $1", user_id)
+
+
+# Удаляем все сообщения
+async def delete_all_messages(db: Depends, chat_id: int):
+    await db.execute(f"DELETE FROM messages WHERE chat_id = $1", chat_id)
 
 
 # Удаляем все записи из таблицы по ключу
