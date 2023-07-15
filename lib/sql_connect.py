@@ -260,8 +260,8 @@ async def save_push_to_sending(db: Depends, msg_id: str, user_id: int, title: st
 # Создаем много новых записей в таблице рассылки
 async def save_msg(db: Depends, msg: dict):
     now = datetime.datetime.now()
-    data = await db.fetch(f"INSERT INTO messages (text, from_id, reply_id, chat_id, file_id, status, create_date) "
-                          f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) ON CONFLICT DO NOTHING RETURNING msg_id;",
+    data = await db.fetch(f"INSERT INTO messages (text, from_id, reply_id, chat_id, file_id, create_date) "
+                          f"VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING RETURNING msg_id;",
                           msg['text'], msg['from_id'], msg['reply_id'], msg['chat_id'], msg['file_id'],
                           int(time.mktime(now.timetuple())))
     return data
