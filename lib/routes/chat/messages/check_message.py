@@ -115,7 +115,7 @@ async def msg_manager(msg: dict, db: Depends, user_id: int, websocket: WebSocket
         # Обрабатываем случай когда пользователь онлайн
         if user[0] in manager.connections.keys():
             connect = manager.connections[user[0]]
-            connect.send_json(socket_resp.response_200)
+            await connect.send_json(socket_resp.response_200)
 
         # Обрабатываем случай когда пользователь офлайн. Просто записываем в таблицу рассылки пушей
         else:

@@ -243,20 +243,6 @@ async def save_push_to_sending(db: Depends, msg_id: str, user_id: int, title: st
     await db.fetch(sql, user_id, title, short_text, main_text, img_url, push_type, msg_id)
 
 
-'''CREATE TABLE IF NOT EXISTS messages (
- msg_id BIGSERIAL PRIMARY KEY,
- text TEXT DEFAULT '0',
- from_id INTEGER DEFAULT 0,
- reply_id INTEGER DEFAULT 0,
- chat_id INTEGER DEFAULT 0,
- file_id INTEGER DEFAULT 0,
- status TEXT DEFAULT 'not_read',
- read_date BIGINT DEFAULT 0,
- deleted_date BIGINT DEFAULT 0,
- create_date BIGINT DEFAULT 0
- )'''
-
-
 # Создаем много новых записей в таблице рассылки
 async def save_msg(db: Depends, msg: dict):
     now = datetime.datetime.now()
@@ -508,7 +494,7 @@ async def update_data(db: Depends, table: str, name: str, id_data, data, id_name
 
 # Обновляем информацию
 async def update_users_chat_push(db: Depends, chat_id: int, user_id: int):
-    await db.execute(f"UPDATE users_chats SET push_sent=$1 WHERE chat_id=$2 AND user_id=$3;",
+    await db.execute(f"UPDATE users_chat SET push_sent=$1 WHERE chat_id=$2 AND user_id=$3;",
                      True, chat_id, user_id)
 
 
