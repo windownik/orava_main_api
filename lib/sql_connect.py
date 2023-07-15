@@ -294,6 +294,29 @@ async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = 
 
 
 # получаем данные с одним фильтром
+async def get_users_in_chat(db: Depends, chat_id: int, offset: int = 0, limit: int = 20):
+    data = await db.fetch(f"SELECT all_users.user_id, all_users.phone, all_users.email, all_users.name, "
+                          f"all_users.middle_name, all_users.surname, all_users.image_link, "
+                          f"all_users.image_link_little, all_users.description, all_users.lang, all_users.status, "
+                          f"all_users.push, all_users.last_active, all_users.create_date FROM users_chat "
+                          f"JOIN all_users "
+                          f"ON users_chat.user_id = all_users.user_id "
+                          f"WHERE users_chat.chat_id = $1 ORDER BY users_chat.id OFFSET $2 LIMIT $3;",
+                          chat_id, offset, limit)
+    return data
+
+
+# получаем данные с одним фильтром
+async def get_count_users_in_chat(db: Depends, chat_id: int,):
+    data = await db.fetch(f"SELECT COUNT(all_users.user_id) FROM users_chat "
+                          f"JOIN all_users "
+                          f"ON users_chat.user_id = all_users.user_id "
+                          f"WHERE users_chat.chat_id = $1;",
+                          chat_id)
+    return data
+
+
+# получаем данные с одним фильтром
 async def get_users_dialog(db: Depends, user_id: int):
     data = await db.fetch(f"SELECT users_chat.chat_id, all_chats.owner_id FROM users_chat JOIN all_chats "
                           f"ON users_chat.chat_id = all_chats.chat_id "

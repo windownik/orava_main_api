@@ -33,7 +33,8 @@ class Chat(BaseModel):
     chat_id: int = 0
     owner_id: int = 0
     owner_user: User = None
-    second_user: User = None
+    all_users_count: int = 0
+    all_users: list = []
     community_id: int = 0
     name: str = '0'
     img_url: str = '0'
@@ -46,9 +47,14 @@ class Chat(BaseModel):
     deleted_date: int = None
     create_date: int = None
 
-    async def to_json(self, db: Depends, dialog_user_data: tuple = None):
-        if dialog_user_data is not None:
-            self.second_user = User.parse_obj(dialog_user_data[0])
+    async def to_json(self, db: Depends,):
+        users_data = await conn.get_users_in_chat(db=db, chat_id=self.chat_id)
+        for one in users_data:
+            user = User.parse_obj(one)
+            self.all_users.append(user)
+        users_count = (await conn.get_count_users_in_chat(db=db, chat_id=self.chat_id))[0][0]
+
+        self.all_users_count = users_count
 
         user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.owner_id, db=db)
         self.owner_user = User.parse_obj(user_data[0])
