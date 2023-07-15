@@ -1,6 +1,6 @@
 from fastapi import WebSocket, Depends
 from lib import sql_connect as conn
-from lib.db_objects import Message, ReceiveMessage
+from lib.db_objects import ReceiveMessage
 from lib.routes.chat.messages.connection_manager import ConnectionManager
 
 

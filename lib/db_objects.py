@@ -46,6 +46,9 @@ class Chat(BaseModel):
     create_date: int = None
 
     async def to_json(self, db: Depends):
+        user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.owner_id, db=db)
+        self.owner_user = User.parse_obj(user_data[0])
+
         resp = self.dict()
         unread_message = []
         unread_count = 0
@@ -58,6 +61,7 @@ class Chat(BaseModel):
                 msg = Message.parse_obj(one)
                 unread_message.append(msg.dict())
 
+        resp.pop('owner_id')
         resp['unread_message'] = unread_message
         resp['unread_count'] = unread_count
         return resp
@@ -74,9 +78,9 @@ class Message(BaseModel):
 
     from_id: int = 0
     reply_id: int = 0
-
     chat_id: int = 0
     file_id: int = 0
+
     status: str = '0'
     read_date: int = 0
     deleted_date: int = 0
