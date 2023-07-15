@@ -47,7 +47,7 @@ class Chat(BaseModel):
     create_date: int = None
 
     async def to_json(self, db: Depends, dialog_user_data: tuple = None):
-        if dialog_user_data is None:
+        if dialog_user_data is not None:
             self.second_user = User.parse_obj(dialog_user_data[0])
 
         user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.owner_id, db=db)
