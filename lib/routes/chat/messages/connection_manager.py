@@ -19,11 +19,12 @@ class ConnectionManager:
         for connect in self.connections:
             await connect.send_json(data)
 
-    async def broadcast_dialog(self, message: Message,):
+    async def broadcast_dialog(self, message: Message, users_in_chat: tuple):
         user_id_list = self.connections.keys()
-        if message.to_id in user_id_list:
-            connect = self.connections[message.to_id]
-            await connect.send_json(message.to_dialog())
+        for user in users_in_chat:
+            if user[0] in user_id_list:
+                connect = self.connections[user[0]]
+                await connect.send_json(message.to_dialog())
 
 
 manager = ConnectionManager()

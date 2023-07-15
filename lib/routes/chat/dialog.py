@@ -38,7 +38,7 @@ async def new_dialog(access_token: str, to_id: int, db=Depends(data_b.connection
     dialog = await check_dialog_in_db(from_id=owner_id[0][0], to_id=user_data[0][0], db=db)
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
-                                 "dialog": dialog.dict()
+                                 "dialog": await dialog.to_json(db=db, dialog_user_data=user_data)
                                  },
                         headers={'content-type': 'application/json; charset=utf-8'})
 

@@ -33,6 +33,7 @@ class Chat(BaseModel):
     chat_id: int = 0
     owner_id: int = 0
     owner_user: User = None
+    second_user: User = None
     community_id: int = 0
     name: str = '0'
     img_url: str = '0'
@@ -45,7 +46,10 @@ class Chat(BaseModel):
     deleted_date: int = None
     create_date: int = None
 
-    async def to_json(self, db: Depends):
+    async def to_json(self, db: Depends, dialog_user_data: tuple = None):
+        if dialog_user_data is None:
+            self.second_user = User.parse_obj(dialog_user_data[0])
+
         user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.owner_id, db=db)
         self.owner_user = User.parse_obj(user_data[0])
 
@@ -105,40 +109,6 @@ class Message(BaseModel):
 
     def update_msg_id(self, msg_id: int):
         self.msg_id = msg_id
-
-
-class Dialog(BaseModel):
-    msg_chat_id: int = 0
-    owner_id: int = 0
-    to_id: int = 0
-    owner_status: str = '0'
-    to_status: str = '0'
-    create_date: int
-
-    async def to_json(self, db: Depends, user_id: int):
-
-        if user_id == self.owner_id:
-            user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.to_id, db=db)
-
-        else:
-            user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=self.owner_id, db=db)
-            self.to_status = self.owner_status
-
-        messages_data = await conn.get_users_unread_messages(msg_chat_id=self.msg_chat_id, user_id=user_id, db=db)
-
-        unread_msg = []
-        for one in messages_data:
-            msg = Message.parse_obj(one)
-            unread_msg.append(msg.to_dialog())
-
-        user_to = User.parse_obj(user_data[0])
-        resp = self.dict()
-        resp['user_to'] = user_to.dict()
-        resp['unread_msg'] = unread_msg
-        resp.pop('owner_id')
-        resp.pop('to_id')
-        resp.pop('owner_status')
-        return resp
 
 
 class Community(BaseModel):
