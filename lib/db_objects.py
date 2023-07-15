@@ -98,7 +98,6 @@ class Message(BaseModel):
 
     def to_dialog(self):
         return {
-            "status_code": 200,
             "msg_id": self.msg_id,
             "client_msg_id": self.client_msg_id,
             "msg_type": self.msg_type,
