@@ -23,7 +23,10 @@ class ConnectionManager:
         user_id_list = self.connections.keys()
         print(111, len(users_in_chat), self.connections.keys())
         for user in users_in_chat:
-            if user[0] in user_id_list:
+            print(user['user_id'])
+            if user['user_id'] == msg.body.from_id:
+                continue
+            if user['user_id'] in user_id_list:
                 connect = self.connections[user['user_id']]
                 await connect.send_json(body)
 
