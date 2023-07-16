@@ -82,7 +82,7 @@ async def msg_manager(msg: dict, db: Depends, user_id: int, websocket: WebSocket
     socket_resp = SocketResp()
     if not check_msg(msg):
         await websocket.send_json(socket_resp.response_400_not_check)
-        return
+        return True
 
     receive_msg = ReceiveMessage.parse_obj(msg)
     socket_resp.update_message(receive_msg)
@@ -92,7 +92,7 @@ async def msg_manager(msg: dict, db: Depends, user_id: int, websocket: WebSocket
 
     if not owner_id:
         await websocket.send_json(socket_resp.response_401)
-        return
+        return True
 
     msg_id = await conn.save_msg(db=db, msg=msg['body'])
 
@@ -104,7 +104,7 @@ async def msg_manager(msg: dict, db: Depends, user_id: int, websocket: WebSocket
     user_in_chat = await conn.check_user_in_chat(db=db, user_id=user_id, chat_id=receive_msg.body.chat_id)
     if not user_in_chat:
         await websocket.send_json(socket_resp.response_400_rights)
-        return False
+        return True
 
     all_users = await conn.read_data(table='users_chat', id_name='chat_id',
                                      id_data=receive_msg.body.chat_id, db=db)
