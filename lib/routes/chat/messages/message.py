@@ -60,6 +60,9 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
         while True:
             data = await websocket.receive_text()
             data = json.loads(data)
+            if 'echo' in data.keys():
+                await websocket.send_text(str(data))
+                continue
             check = await msg_manager(data, db=db, user_id=user_id, websocket=websocket, manager=manager)
 
             if not check:
