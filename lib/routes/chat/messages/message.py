@@ -67,6 +67,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
     except WebSocketDisconnect:
         await manager.disconnect(user_id=user_id)
     except Exception as ex:
-        print(ex)
+        print('Exception', ex)
     finally:
+        print('finally')
         await manager.disconnect(user_id)
