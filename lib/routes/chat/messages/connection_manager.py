@@ -1,7 +1,7 @@
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
 
-from lib.db_objects import Message
+from lib.db_objects import Message, ReceiveMessage
 
 
 class ConnectionManager:
@@ -19,9 +19,9 @@ class ConnectionManager:
         for connect in self.connections:
             await connect.send_json(data)
 
-    async def broadcast_dialog(self, body: dict, users_in_chat: tuple):
+    async def broadcast_dialog(self, body: dict, users_in_chat: tuple, msg: ReceiveMessage):
         user_id_list = self.connections.keys()
-        print(len(users_in_chat), self.connections.keys())
+        print(111, len(users_in_chat), self.connections.keys())
         for user in users_in_chat:
             if user[0] in user_id_list:
                 connect = self.connections[user['user_id']]

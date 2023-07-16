@@ -109,7 +109,7 @@ async def msg_manager(msg: dict, db: Depends, user_id: int, websocket: WebSocket
     all_users = await conn.read_data(table='users_chat', id_name='chat_id',
                                      id_data=receive_msg.body.chat_id, db=db)
 
-    await manager.broadcast_dialog(users_in_chat=all_users, body=socket_resp.response_200)
+    await manager.broadcast_dialog(users_in_chat=all_users, body=socket_resp.response_200, msg=receive_msg)
     # for user in all_users:
     #     if user[0] == user_id:
     #         continue
