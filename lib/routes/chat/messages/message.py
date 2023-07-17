@@ -3,6 +3,7 @@ import json
 from starlette.websockets import WebSocketDisconnect
 from fastapi import WebSocket, Depends
 from fastapi.responses import HTMLResponse
+from lib import sql_connect as conn
 
 from lib.app_init import app
 from lib.routes.chat.messages.check_message import msg_manager
@@ -56,6 +57,8 @@ async def get():
 async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data_b.connection)):
     await manager.connect(websocket, user_id=user_id)
     print('Connect', manager.connections.keys())
+    # Очищаем пуш метки
+    await conn.clear_users_chat_push(db=db, user_id=user_id)
     try:
         while True:
             data = await websocket.receive_text()

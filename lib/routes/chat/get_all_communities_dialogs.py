@@ -5,7 +5,7 @@ from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
-from lib.db_objects import Chat
+from lib.db_objects import Chat, User
 from lib.response_examples import *
 from lib.sql_connect import data_b, app
 
@@ -26,6 +26,9 @@ async def get_all_communities_chats_dialogs(access_token: str, db=Depends(data_b
     if not owner_id:
         return Response(content="bad access token",
                         status_code=_status.HTTP_401_UNAUTHORIZED)
+    user_data = await conn.read_data(db=db, name='*', table='all_users', id_name='user_id', id_data=owner_id[0][0])
+    user = User.parse_obj(user_data[0])
+
     # Очищаем пуш метки
     await conn.clear_users_chat_push(db=db, user_id=owner_id[0][0])
 
@@ -37,6 +40,9 @@ async def get_all_communities_chats_dialogs(access_token: str, db=Depends(data_b
 
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
+                                 'user': user.dict(
+                                     exclude={"push"}
+                                 ),
                                  "chats": list_chats,
                                  },
                         headers={'content-type': 'application/json; charset=utf-8'})
