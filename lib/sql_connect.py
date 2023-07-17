@@ -461,7 +461,8 @@ async def get_token(db: Depends, token_type: str, token: str):
 
 # Создаем новую таблицу
 async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang: str, image_link: str,
-                      user_id: int, push: str = '0'):
+                      image_link_little: str, user_id: int, push: str = '0'):
+
     if name == '0' and surname == '0' and midl_name == '0' and lang == '0' and image_link == '0' \
             and push == '0':
         return user_id
@@ -480,6 +481,10 @@ async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang
     if image_link != '0':
         await db.fetch(f"UPDATE all_users SET image_link=$1 WHERE user_id=$2;",
                        image_link, user_id)
+
+    if image_link_little != '0':
+        await db.fetch(f"UPDATE all_users SET image_link_little=$1 WHERE user_id=$2;",
+                       image_link_little, user_id)
     if push != '0':
         await db.fetch(f"UPDATE all_users SET push=$1 WHERE user_id=$2;",
                        push, user_id)

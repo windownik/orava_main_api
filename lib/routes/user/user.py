@@ -105,7 +105,7 @@ async def get_user_information(access_token: str, db=Depends(data_b.connection),
 
 @app.put(path='/user', tags=['User'], responses=update_user_res)
 async def update_user_information(access_token: str, name: str = '0', surname: str = '0', midl_name: str = '0',
-                                  lang: str = '0', image_link: str = '0', db=Depends(data_b.connection)):
+                                  lang: str = '0', image_link: str = '0', image_link_little: str = '0', db=Depends(data_b.connection)):
     """Update user's information.\n
 
     name: users name from Facebook or name of company\n
@@ -121,7 +121,7 @@ async def update_user_information(access_token: str, name: str = '0', surname: s
                             status_code=_status.HTTP_401_UNAUTHORIZED)
 
     await conn.update_user(db=db, name=name, surname=surname, midl_name=midl_name, image_link=image_link, lang=lang,
-                           user_id=user_id[0][0])
+                           user_id=user_id[0][0], image_link_little=image_link_little)
     return JSONResponse(content={"ok": True,
                                  'desc': 'all users information updated'},
                         status_code=_status.HTTP_200_OK,
