@@ -35,6 +35,7 @@ class SocketResp:
         self.response_201_confirm_receive = {"ok": True,
                                              'status_code': 201,
                                              'msg_client_id': receive_msg.msg_client_id,
+                                             'msg_server_id': receive_msg.body.msg_id,
                                              "msg_type": "delivery",
                                              'desc': 'success receive'}
 
