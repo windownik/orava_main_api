@@ -113,8 +113,12 @@ async def msg_manager(msg: dict, db: Depends, user_id: int, websocket: WebSocket
     all_users = await conn.read_data(table='users_chat', id_name='chat_id',
                                      id_data=receive_msg.body.chat_id, db=db)
 
-    await manager.broadcast_dialog(users_in_chat=all_users, body=socket_resp.response_200, msg=receive_msg)
-    # for user in all_users:
+    push_users = await manager.broadcast_dialog(users_in_chat=all_users, body=socket_resp.response_200, msg=receive_msg)
+    for user in push_users:
+        await conn.update_users_chat_push(db=db, chat_id=receive_msg.body.chat_id, user_id=user['user_id'])
+        await conn.save_push_to_sending(db=db, msg_id=f"{receive_msg.body.msg_id}", push_type='message',
+                                        title=f'Новое сообщение',
+                                        short_text='У вас новое сообщение в чате: ', user_id=user['user_id'])
     #     if user[0] == user_id:
     #         continue
     #
@@ -128,7 +132,4 @@ async def msg_manager(msg: dict, db: Depends, user_id: int, websocket: WebSocket
     #         if user['push_sent']:
     #             continue
     #         else:
-    #             await conn.update_users_chat_push(db=db, chat_id=receive_msg.body.chat_id, user_id=user['user_id'])
-    #             await conn.save_push_to_sending(db=db, msg_id=f"{receive_msg.body.msg_id}", push_type='message',
-    #                                             title=f'Новое сообщение',
-    #                                             short_text='У вас новое сообщение в чате: ', user_id=user['user_id'])
+
