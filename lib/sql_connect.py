@@ -241,6 +241,7 @@ async def save_push_to_sending(db: Depends, msg_id: str, user_id: int, title: st
     sql = f"INSERT INTO sending (user_id, title, short_text, main_text, img_url, push_type, msg_line_id) " \
           f"VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT DO NOTHING;"
     await db.fetch(sql, user_id, title, short_text, main_text, img_url, push_type, msg_id)
+    print('save to push', user_id)
 
 
 # Создаем много новых записей в таблице рассылки
