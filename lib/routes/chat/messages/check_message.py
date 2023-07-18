@@ -117,7 +117,7 @@ async def msg_manager(msg: dict, db: Depends, user_id: int, websocket: WebSocket
     for user in push_users:
         print('push for', user['user_id'])
         await conn.update_users_chat_push(db=db, chat_id=receive_msg.body.chat_id, user_id=user['user_id'])
-        await conn.save_push_to_sending(db=db, msg_id=f"{receive_msg.body.msg_id}", push_type='text',
+        await conn.save_push_to_sending(db=db, msg_id=receive_msg.body.msg_id, push_type='text',
                                         title=f'Новое сообщение',
                                         short_text='У вас новое сообщение в чате: ', user_id=user['user_id'])
     #     if user[0] == user_id:
