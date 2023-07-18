@@ -62,6 +62,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int, db=Depends(data
     try:
         while True:
             data = await websocket.receive_text()
+            print(data)
             await conn.update_user_active(db=db, user_id=user_id)
             data = json.loads(data)
             if 'echo' in data.keys():
