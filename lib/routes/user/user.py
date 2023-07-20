@@ -18,12 +18,6 @@ ip_port = 80 if ip_port is None else ip_port
 ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 
-@data_b.on_init
-async def initialization(connect):
-    # you can run your db initialization code here
-    await connect.execute("SELECT 1")
-
-
 @app.post(path='/user', tags=['User'], responses=create_user_res)
 async def new_user(name: str, surname: str, phone: int, lang: str, image_link: str,
                    image_link_little: str, midl_name: str = '0', db=Depends(data_b.connection)):
@@ -75,7 +69,7 @@ async def new_user(name: str, surname: str, phone: int, lang: str, image_link: s
 
 @app.get(path='/user', tags=['User'], responses=get_me_res)
 async def get_user_information(access_token: str, db=Depends(data_b.connection), user_id: int = 0):
-    """Here you can check your username and password. Get users information.\n
+    """Here you can get user by access token, or you can get user with user_id\n
     access_token: This is access auth token. You can get it when create account, login"""
     owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not owner_id:
@@ -105,8 +99,8 @@ async def update_user_information(access_token: str, name: str = '0', surname: s
                                   db=Depends(data_b.connection)):
     """Update user's information.\n
 
-    name: users name from Facebook or name of company\n
-    phone: only numbers\n
+    name, surname, midl_name: users information input while create user\n
+    image_link, image_link_little: new links for user photo\n
     description: users account description\n
     status: can be customer and worker\n
     lang: users app Language can be: ru, en, heb\n"""
@@ -127,6 +121,8 @@ async def update_user_information(access_token: str, name: str = '0', surname: s
 
 @app.get(path='/user_by_phone', tags=['User'], responses=dialog_created_res)
 async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connection)):
+    """Here you can get user by phone number, use for search\n
+    access_token: This is access auth token. You can get it when create account, login"""
     owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not owner_id:
         return Response(content="bad access token",
@@ -147,7 +143,6 @@ async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connect
 @app.delete(path='/user', tags=['User'], responses=update_user_res)
 async def delete_user(access_token: str, db=Depends(data_b.connection)):
     """Delete all user information.\n
-
     access_token: This is access auth token. You can get it when create account, login"""
 
     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
