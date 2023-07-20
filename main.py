@@ -17,7 +17,7 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="Welcome to Orava app API",
-        version="0.9",
+        version="0.5",
         description="This is main API of service",
         routes=app.routes,
         tags=[
