@@ -146,9 +146,7 @@ async def check_sms_code(phone: int, sms_code: str, db=Depends(data_b.connection
 
         return JSONResponse(content={"ok": True,
                                      'description': 'Confirm phone number',
-                                     'user': user.dict(
-                                         exclude={"push"}
-                                     ),
+                                     'user': user.dict(),
                                      'access_token': access[0][0],
                                      'refresh_token': refresh[0][0],
                                      },

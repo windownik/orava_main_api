@@ -67,9 +67,7 @@ async def new_user(name: str, surname: str, phone: int, lang: str, image_link: s
     return JSONResponse(content={"ok": True,
                                  'access_token': access[0][0],
                                  'refresh_token': refresh[0][0],
-                                 'user': user.dict(
-                                     exclude={"push"}
-                                 )},
+                                 'user': user.dict()},
                         status_code=_status.HTTP_200_OK,
 
                         headers={'content-type': 'application/json; charset=utf-8'})
@@ -95,9 +93,7 @@ async def get_user_information(access_token: str, db=Depends(data_b.connection),
 
     user = User.parse_obj(user_data[0])
     return JSONResponse(content={"ok": True,
-                                 'user': user.dict(
-                                     exclude={"push"}
-                                 ),
+                                 'user': user.dict(),
                                  },
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
@@ -105,7 +101,8 @@ async def get_user_information(access_token: str, db=Depends(data_b.connection),
 
 @app.put(path='/user', tags=['User'], responses=update_user_res)
 async def update_user_information(access_token: str, name: str = '0', surname: str = '0', midl_name: str = '0',
-                                  lang: str = '0', image_link: str = '0', image_link_little: str = '0', db=Depends(data_b.connection)):
+                                  lang: str = '0', image_link: str = '0', image_link_little: str = '0',
+                                  db=Depends(data_b.connection)):
     """Update user's information.\n
 
     name: users name from Facebook or name of company\n

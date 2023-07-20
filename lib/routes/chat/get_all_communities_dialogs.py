@@ -36,13 +36,11 @@ async def get_all_communities_chats_dialogs(access_token: str, db=Depends(data_b
     list_chats = []
     for chat_data in chats_data:
         chat = Chat.parse_obj(chat_data)
-        list_chats.append(await chat.to_json(db))
+        list_chats.append(await chat.to_json(db, reqwest_user=user))
 
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
-                                 'user': user.dict(
-                                     exclude={"push"}
-                                 ),
+                                 'user': user.dict(),
                                  "chats": list_chats,
                                  },
                         headers={'content-type': 'application/json; charset=utf-8'})

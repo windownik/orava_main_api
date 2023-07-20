@@ -281,7 +281,7 @@ async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = 
 
 
 # получаем данные с одним фильтром
-async def get_users_in_chat(db: Depends, chat_id: int, offset: int = 0, limit: int = 20):
+async def get_users_in_chat(db: Depends, chat_id: int, offset: int = 0, limit: int = 10):
     data = await db.fetch(f"SELECT all_users.user_id, all_users.phone, all_users.email, all_users.name, "
                           f"all_users.middle_name, all_users.surname, all_users.image_link, "
                           f"all_users.image_link_little, all_users.description, all_users.lang, all_users.status, "
@@ -341,6 +341,20 @@ async def get_users_unread_messages(db: Depends, chat_id: int, ):
                           f"AND read_date = 0 "
                           f"AND deleted_date = 0 ORDER BY create_date DESC LIMIT 20;", chat_id)
     return data
+
+
+# получаем 20 не прочитанных сообщений
+async def get_chat_messages_by_last_msg(db: Depends, lust_msg_id: int, chat_id: int, old_msg_scroll: bool):
+    if old_msg_scroll:
+        return await db.fetch(f"SELECT * FROM messages "
+                              f"WHERE chat_id = $1 "
+                              f"AND msg_id < $2 "
+                              f"AND deleted_date = 0 ORDER BY create_date DESC LIMIT 20;", chat_id, lust_msg_id)
+    else:
+        return await db.fetch(f"SELECT * FROM messages "
+                              f"WHERE chat_id = $1 "
+                              f"AND msg_id > $2 "
+                              f"AND deleted_date = 0 ORDER BY create_date LIMIT 20;", chat_id, lust_msg_id)
 
 
 # получаем данные с одним фильтром
