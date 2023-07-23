@@ -7,6 +7,7 @@ from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
+from lib.db_objects import User
 from lib.response_examples import *
 from lib.routes.chat.dialog_funcs import check_dialog_in_db
 from lib.sql_connect import data_b, app
@@ -34,11 +35,11 @@ async def new_dialog(access_token: str, to_id: int, db=Depends(data_b.connection
         return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
                             content={"ok": False,
                                      'description': "Haven't user with to_id", })
-
+    user: User = User.parse_obj(user_data[0])
     dialog = await check_dialog_in_db(from_id=owner_id[0][0], to_id=user_data[0][0], db=db)
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
-                                 "dialog": await dialog.to_json(db=db)
+                                 "dialog": await dialog.to_json(db=db, reqwest_user=user)
                                  },
                         headers={'content-type': 'application/json; charset=utf-8'})
 
