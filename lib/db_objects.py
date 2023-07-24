@@ -119,7 +119,7 @@ async def add_user_and_reply_to_msg(db: Depends, msg: Message, reqwest_user: Use
     msg_dict = msg.dict()
 
     if msg.reply_id != 0:
-        reply_msg_data = await conn.read_data(db=db, table='messages', id_name='msg_id', id_data=msg.msg_id)
+        reply_msg_data = await conn.read_data(db=db, table='messages', id_name='msg_id', id_data=msg.reply_id)
         reply_msg: Message = Message.parse_obj(reply_msg_data[0])
         await reply_msg.add_user_to_msg(reqwest_user=reqwest_user, db=db)
 
