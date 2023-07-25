@@ -47,6 +47,7 @@ async def download_file(file_id: int, db=Depends(data_b.connection), ):
 
     little_id = file[0]['little_file_id']
     little_file = await conn.read_data(db=db, table='files', id_name='id', id_data=little_id, name='*')
+    middle_id = file[0]['middle_file_id']
 
     if not little_file:
         return JSONResponse(content={"ok": True,
@@ -58,7 +59,8 @@ async def download_file(file_id: int, db=Depends(data_b.connection), ):
     return JSONResponse(content={"ok": True,
                                  'file_type': file[0]['file_type'],
                                  'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
-                                 'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={little_file[0][0]}"
+                                 'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={little_file[0][0]}",
+                                 'middle_url': f"http://{ip_server}:{ip_port}/file_download?file_id={middle_id}"
                                  },
                         headers={'content-type': 'application/json; charset=utf-8'})
 
@@ -91,7 +93,7 @@ async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
 
 
 @app.post(path='/file_upload', tags=['For all'], responses=upload_files_res)
-async def upload_file(file: UploadFile, access_token: str='0', db=Depends(data_b.connection), ):
+async def upload_file(file: UploadFile, access_token: str = '0', db=Depends(data_b.connection), ):
     """
     Upload file to server\n
     file_type in response: .jpg and . png is image,\n
@@ -127,20 +129,10 @@ async def upload_file(file: UploadFile, access_token: str='0', db=Depends(data_b
     f.close()
 
     if file_type == 'image':
-        small_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
-                                                  file_type=file_type))[0][0]
-        small_filename = f"{small_file_id}.{file.filename.split('.')[1]}"
-        await conn.update_data(table='files', name='file_path', data=f"{file_path}{small_filename}",
-                               id_data=small_file_id, db=db)
-        await conn.update_data(table='files', name='little_file_id', data=small_file_id,
-                               id_data=file_id, db=db)
-        image = Image.open(f"{file_path}{filename}")
-        width, height = image.size
-        coefficient = height / 100
-        new_width = width / coefficient
-
-        resized_image = image.resize((int(new_width), 100))
-        resized_image.save(f"{file_path}{small_filename}")
+        small_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
+                                              user_id=user_id, file_id=file_id, filename=filename, )
+        middle_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
+                                               user_id=user_id, file_id=file_id, filename=filename, size=2)
 
         return JSONResponse(content={'ok': True,
                                      'creator_id': user_id,
@@ -148,6 +140,7 @@ async def upload_file(file: UploadFile, access_token: str='0', db=Depends(data_b
                                      'file_type': file_type,
                                      'file_id': file_id,
                                      'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
+                                     'middle_url': f"http://{ip_server}:{ip_port}/file_download?file_id={middle_file_id}",
                                      'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={small_file_id}"
                                      },
                             headers={'content-type': 'application/json; charset=utf-8'})
@@ -160,3 +153,26 @@ async def upload_file(file: UploadFile, access_token: str='0', db=Depends(data_b
                                  'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
                                  },
                         headers={'content-type': 'application/json; charset=utf-8'})
+
+
+async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_type: str, user_id: int, file_id: int,
+                          filename: str, size: int = 1):
+    small_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
+                                              file_type=file_type))[0][0]
+    small_filename = f"{small_file_id}.{file.filename.split('.')[1]}"
+    await conn.update_data(table='files', name='file_path', data=f"{file_path}{small_filename}",
+                           id_data=small_file_id, db=db)
+    if size != 1:
+        await conn.update_data(table='files', name='middle_file_id', data=small_file_id,
+                               id_data=file_id, db=db)
+    else:
+        await conn.update_data(table='files', name='little_file_id', data=small_file_id,
+                               id_data=file_id, db=db)
+    image = Image.open(f"{file_path}{filename}")
+    width, height = image.size
+    coefficient = (height / 100) * size
+    new_width = (width / coefficient) * size
+
+    resized_image = image.resize((int(new_width), 100 * size))
+    resized_image.save(f"{file_path}{small_filename}")
+    return small_file_id

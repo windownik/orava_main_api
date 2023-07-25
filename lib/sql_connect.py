@@ -64,6 +64,7 @@ async def create_files_table(db):
  file_type TEXT DEFAULT '0',
  owner_id INTEGER DEFAULT 0,
  little_file_id INTEGER DEFAULT 0,
+ middle_file_id INTEGER DEFAULT 0,
  create_date timestamptz
  )''')
 
