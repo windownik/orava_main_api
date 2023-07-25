@@ -14,7 +14,6 @@ from fastapi.responses import FileResponse
 from PIL import Image
 from moviepy.editor import VideoFileClip
 
-
 ip_server = os.environ.get("IP_SERVER")
 ip_port = os.environ.get("PORT_SERVER")
 
@@ -199,18 +198,15 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
 
 
 async def save_video_screen(db: Depends, file: UploadFile, file_path: str, file_type: str, user_id: int, file_id: int,
-                            filename: str, size: int = 1):
-    small_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
-                                              file_type=file_type))[0][0]
-    small_filename = f"{small_file_id}.{file.filename.split('.')[1]}"
+                            filename: str):
+    screen_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
+                                               file_type=file_type))[0][0]
+    small_filename = f"{screen_file_id}.jpg"
     await conn.update_data(table='files', name='file_path', data=f"{file_path}{small_filename}",
-                           id_data=small_file_id, db=db)
-    if size != 1:
-        await conn.update_data(table='files', name='middle_file_id', data=small_file_id,
-                               id_data=file_id, db=db)
-    else:
-        await conn.update_data(table='files', name='little_file_id', data=small_file_id,
-                               id_data=file_id, db=db)
+                           id_data=screen_file_id, db=db)
+
+    await conn.update_data(table='files', name='little_file_id', data=screen_file_id,
+                           id_data=file_id, db=db)
 
     # Загрузите видео с помощью moviepy
     video = VideoFileClip(f"{file_path}{filename}")
@@ -228,4 +224,4 @@ async def save_video_screen(db: Depends, file: UploadFile, file_path: str, file_
     video.reader.close()
     video.audio.reader.close_proc()
 
-    return small_file_id
+    return screen_file_id
