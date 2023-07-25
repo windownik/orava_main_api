@@ -18,12 +18,12 @@ ip_port = os.environ.get("PORT_SERVER")
 
 ip_port = 80 if ip_port is None else ip_port
 ip_server = "127.0.0.1" if ip_server is None else ip_server
-
-
-@data_b.on_init
-async def initialization(connect):
-    # you can run your db initialization code here
-    await connect.execute("SELECT 1")
+#
+#
+# @data_b.on_init
+# async def initialization(connect):
+#     # you can run your db initialization code here
+#     await connect.execute("SELECT 1")
 
 
 @app.get(path='/file_download', tags=['For all'])
