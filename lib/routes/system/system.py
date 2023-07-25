@@ -16,12 +16,12 @@ ip_server = "127.0.0.1" if ip_server is None else ip_server
 @data_b.on_init
 async def initialization(db):
     # you can run your db initialization code here
-#     await connect.execute("SELECT 1")
-#
-#
-# @app.get(path='/create_db', tags=['System'], )
-# async def init_database(db=Depends(data_b.connection)):
-#     """Here you can first initialise database"""
+    await db.execute("SELECT 1")
+
+
+@app.get(path='/create_db', tags=['System'], )
+async def init_database(db=Depends(data_b.connection)):
+    """Here you can first initialise database"""
 
     await conn.create_users_chats_table(db)
     await conn.create_all_users_table(db)
