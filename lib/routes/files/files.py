@@ -204,6 +204,9 @@ async def save_video_screen(db: Depends, file: UploadFile, user_id: int, file_id
     await conn.update_data(table='files', name='file_path', data=f"files/img/{small_filename}",
                            id_data=screen_file_id, db=db)
 
+    await conn.update_data(table='files', name='file_name', data=small_filename,
+                           id_data=screen_file_id, db=db)
+
     await conn.update_data(table='files', name='little_file_id', data=screen_file_id,
                            id_data=file_id, db=db)
 
