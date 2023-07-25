@@ -170,7 +170,7 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
                                id_data=file_id, db=db)
     image = Image.open(f"{file_path}{filename}")
     width, height = image.size
-    coefficient = (height / 100) * size
+    coefficient = height / 100
     new_width = (width / coefficient) * size
 
     resized_image = image.resize((int(new_width), 100 * size))
