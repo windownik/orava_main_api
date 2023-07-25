@@ -154,7 +154,7 @@ async def upload_file(file: UploadFile, access_token: str = '0', db=Depends(data
 
     elif file_type == 'video':
 
-        screen_id = await save_video_screen(db=db, file=file, file_path=file_path, file_type=file_type,
+        screen_id = await save_video_screen(db=db, file=file, file_path=file_path,
                                             user_id=user_id, file_id=file_id, filename=filename, )
 
         return JSONResponse(content={'ok': True,
@@ -197,10 +197,10 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
     return small_file_id
 
 
-async def save_video_screen(db: Depends, file: UploadFile, file_path: str, file_type: str, user_id: int, file_id: int,
+async def save_video_screen(db: Depends, file: UploadFile, user_id: int, file_id: int,
                             filename: str):
-    screen_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
-                                               file_type=file_type))[0][0]
+    screen_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path='files/img/', owner_id=user_id,
+                                               file_type='image'))[0][0]
     small_filename = f"{screen_file_id}.jpg"
     await conn.update_data(table='files', name='file_path', data=f"files/img/{small_filename}",
                            id_data=screen_file_id, db=db)
@@ -209,7 +209,7 @@ async def save_video_screen(db: Depends, file: UploadFile, file_path: str, file_
                            id_data=file_id, db=db)
 
     # Загрузите видео с помощью moviepy
-    video = VideoFileClip(f"{file_path}{filename}")
+    video = VideoFileClip(f"files/video/{filename}")
     if video.duration < 5:
         screenshot_time = 0
     else:
