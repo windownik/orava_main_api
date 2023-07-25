@@ -154,8 +154,7 @@ async def upload_file(file: UploadFile, access_token: str = '0', db=Depends(data
 
     elif file_type == 'video':
 
-        screen_id = await save_video_screen(db=db, file=file, file_path=file_path,
-                                            user_id=user_id, file_id=file_id, filename=filename, )
+        screen_id = await save_video_screen(db=db, file=file, user_id=user_id, file_id=file_id, filename=filename)
 
         return JSONResponse(content={'ok': True,
                                      'creator_id': user_id,
