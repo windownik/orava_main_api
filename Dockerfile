@@ -18,6 +18,7 @@ RUN pip3 install firebase-admin
 RUN pip3 install pillow
 RUN pip3 install websockets
 RUN pip3 install python-socketio
+RUN pip3 install moviepy
 
 
 WORKDIR /main/

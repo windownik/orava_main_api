@@ -12,12 +12,16 @@ from lib.sql_connect import data_b, app
 from fastapi.responses import FileResponse
 
 from PIL import Image
+from moviepy.editor import VideoFileClip
+
 
 ip_server = os.environ.get("IP_SERVER")
 ip_port = os.environ.get("PORT_SERVER")
 
 ip_port = 80 if ip_port is None else ip_port
 ip_server = "127.0.0.1" if ip_server is None else ip_server
+
+
 #
 #
 # @data_b.on_init
@@ -114,6 +118,9 @@ async def upload_file(file: UploadFile, access_token: str = '0', db=Depends(data
     elif file.filename.split('.')[1] == 'txt' or file.filename.split('.')[1] == 'pdf':
         file_path = f'files/docs/'
         file_type = 'document'
+    elif file.filename.split('.')[1] == 'mp4':
+        file_path = f'files/video/'
+        file_type = 'video'
     else:
         file_path = f'files/file/'
         file_type = 'file'
@@ -129,10 +136,11 @@ async def upload_file(file: UploadFile, access_token: str = '0', db=Depends(data
     f.close()
 
     if file_type == 'image':
-        small_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
-                                              user_id=user_id, file_id=file_id, filename=filename, )
         middle_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
                                                user_id=user_id, file_id=file_id, filename=filename, size=2)
+
+        small_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
+                                              user_id=user_id, file_id=file_id, filename=filename, )
 
         return JSONResponse(content={'ok': True,
                                      'creator_id': user_id,
@@ -142,6 +150,21 @@ async def upload_file(file: UploadFile, access_token: str = '0', db=Depends(data
                                      'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
                                      'middle_url': f"http://{ip_server}:{ip_port}/file_download?file_id={middle_file_id}",
                                      'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={small_file_id}"
+                                     },
+                            headers={'content-type': 'application/json; charset=utf-8'})
+
+    elif file_type == 'video':
+
+        screen_id = await save_video_screen(db=db, file=file, file_path=file_path, file_type=file_type,
+                                            user_id=user_id, file_id=file_id, filename=filename, )
+
+        return JSONResponse(content={'ok': True,
+                                     'creator_id': user_id,
+                                     'file_name': file.filename,
+                                     'file_type': file_type,
+                                     'file_id': file_id,
+                                     'video_url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
+                                     'screen_url': f"http://{ip_server}:{ip_port}/file_download?file_id={screen_id}"
                                      },
                             headers={'content-type': 'application/json; charset=utf-8'})
 
@@ -162,12 +185,9 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
     small_filename = f"{small_file_id}.{file.filename.split('.')[1]}"
     await conn.update_data(table='files', name='file_path', data=f"{file_path}{small_filename}",
                            id_data=small_file_id, db=db)
-    if size != 1:
-        await conn.update_data(table='files', name='middle_file_id', data=small_file_id,
-                               id_data=file_id, db=db)
-    else:
-        await conn.update_data(table='files', name='little_file_id', data=small_file_id,
-                               id_data=file_id, db=db)
+    await conn.update_data(table='files', name='little_file_id', data=small_file_id,
+                           id_data=file_id, db=db)
+
     image = Image.open(f"{file_path}{filename}")
     width, height = image.size
     coefficient = height / 100
@@ -175,4 +195,37 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
 
     resized_image = image.resize((int(new_width), 100 * size))
     resized_image.save(f"{file_path}{small_filename}")
+    return small_file_id
+
+
+async def save_video_screen(db: Depends, file: UploadFile, file_path: str, file_type: str, user_id: int, file_id: int,
+                            filename: str, size: int = 1):
+    small_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
+                                              file_type=file_type))[0][0]
+    small_filename = f"{small_file_id}.{file.filename.split('.')[1]}"
+    await conn.update_data(table='files', name='file_path', data=f"{file_path}{small_filename}",
+                           id_data=small_file_id, db=db)
+    if size != 1:
+        await conn.update_data(table='files', name='middle_file_id', data=small_file_id,
+                               id_data=file_id, db=db)
+    else:
+        await conn.update_data(table='files', name='little_file_id', data=small_file_id,
+                               id_data=file_id, db=db)
+
+    # Загрузите видео с помощью moviepy
+    video = VideoFileClip(f"{file_path}{filename}")
+    if video.duration < 5:
+        screenshot_time = 0
+    else:
+        screenshot_time = video.duration / 5
+
+    # Получите кадр на определенной секунде времени
+    frame = video.get_frame(screenshot_time)
+
+    # Создайте изображение с помощью Pillow из кадра
+    image = Image.fromarray(frame)
+    image.save(f"{file_path}{small_filename}")
+    video.reader.close()
+    video.audio.reader.close_proc()
+
     return small_file_id
