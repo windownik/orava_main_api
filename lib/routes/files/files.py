@@ -202,7 +202,7 @@ async def save_video_screen(db: Depends, file: UploadFile, file_path: str, file_
     screen_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
                                                file_type=file_type))[0][0]
     small_filename = f"{screen_file_id}.jpg"
-    await conn.update_data(table='files', name='file_path', data=f"{file_path}{small_filename}",
+    await conn.update_data(table='files', name='file_path', data=f"files/img/{small_filename}",
                            id_data=screen_file_id, db=db)
 
     await conn.update_data(table='files', name='little_file_id', data=screen_file_id,
@@ -220,7 +220,7 @@ async def save_video_screen(db: Depends, file: UploadFile, file_path: str, file_
 
     # Создайте изображение с помощью Pillow из кадра
     image = Image.fromarray(frame)
-    image.save(f"{file_path}{small_filename}")
+    image.save(f"files/img/{small_filename}")
     video.reader.close()
     video.audio.reader.close_proc()
 
