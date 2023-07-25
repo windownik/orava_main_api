@@ -221,6 +221,7 @@ async def save_video_screen(db: Depends, file: UploadFile, file_path: str, file_
     # Создайте изображение с помощью Pillow из кадра
     image = Image.fromarray(frame)
     image.save(f"files/img/{small_filename}")
+    print(small_filename)
     video.reader.close()
     video.audio.reader.close_proc()
 
