@@ -57,14 +57,6 @@ async def download_file(file_id: int, db=Depends(data_b.connection), ):
     return JSONResponse(content=resp,
                         headers={'content-type': 'application/json; charset=utf-8'})
 
-    # return JSONResponse(content={"ok": True,
-    #                              'file_type': file[0]['file_type'],
-    #                              'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
-    #                              'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={little_file[0][0]}",
-    #                              'middle_url': f"http://{ip_server}:{ip_port}/file_download?file_id={middle_id}"
-    #                              },
-    #                     headers={'content-type': 'application/json; charset=utf-8'})
-
 
 @app.get(path='/files_in_line', tags=['For all'], responses=upload_files_list_res)
 async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
