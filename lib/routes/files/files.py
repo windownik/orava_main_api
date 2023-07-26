@@ -48,10 +48,10 @@ async def download_file(file_id: int, db=Depends(data_b.connection), ):
             'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
             }
 
-    if little_file:
+    if little_id != 0:
         resp['little_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={little_file[0][0]}"
 
-    if little_file:
+    if middle_id != 0:
         resp['middle_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={middle_id}"
 
     return JSONResponse(content=resp,
