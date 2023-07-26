@@ -141,14 +141,24 @@ async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connect
 
 
 @app.get(path='/check_user_in_contact', tags=['User'], responses=dialog_created_res)
-async def check_user_in_contact(access_token: str, phone_list: list[int], db=Depends(data_b.connection)):
-    """Here you can get user by phone number, use for search\n
-    access_token: This is access auth token. You can get it when create account, login"""
+async def check_user_in_contact(access_token: str, phone_list: str, db=Depends(data_b.connection)):
+    """Here you can get user by phone number, use for check contact book\n
+    access_token: This is access auth token. You can get it when create account, login\n
+    phone_list: This list of phone numbers in database example 1234,55678,23454"""
     owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not owner_id:
         return Response(content="bad access token",
                         status_code=_status.HTTP_401_UNAUTHORIZED)
-    user_data = await conn.get_users_by_phone_list(db=db, users_phones=phone_list)
+    try:
+        phone_list = phone_list.split(',')
+        print(phone_list)
+        user_data = await conn.get_users_by_phone_list(db=db, users_phones=phone_list)
+    except Exception as e:
+        print(e)
+        return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
+                            content={"ok": True,
+                                     "desc": 'bad phone list',
+                                     })
     all_users_list = []
     phone_list_in_service = []
     for one in user_data:

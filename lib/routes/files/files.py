@@ -12,7 +12,7 @@ from lib.sql_connect import data_b, app
 from fastapi.responses import FileResponse
 
 from PIL import Image
-from moviepy.editor import VideoFileClip
+# from moviepy.editor import VideoFileClip
 
 ip_server = os.environ.get("IP_SERVER")
 ip_port = os.environ.get("PORT_SERVER")

@@ -282,7 +282,7 @@ async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = 
 
 
 # получаем данные с одним фильтром
-async def get_users_by_phone_list(db: Depends, users_phones: list[int]):
+async def get_users_by_phone_list(db: Depends, users_phones: list):
     sql_where = ''
     for phone in users_phones:
         sql_where = f'{sql_where}phone = {phone} OR '
