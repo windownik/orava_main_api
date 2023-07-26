@@ -151,7 +151,6 @@ async def check_user_in_contact(access_token: str, phone_list: str, db=Depends(d
                         status_code=_status.HTTP_401_UNAUTHORIZED)
     try:
         phone_list = phone_list.split(',')
-        print(phone_list)
         user_data = await conn.get_users_by_phone_list(db=db, users_phones=phone_list)
     except Exception as e:
         print(e)

@@ -285,7 +285,8 @@ async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = 
 async def get_users_by_phone_list(db: Depends, users_phones: list):
     sql_where = ''
     for phone in users_phones:
-        sql_where = f'{sql_where}phone = {phone} OR '
+        if phone.isdigit():
+            sql_where = f'{sql_where}phone = {phone} OR '
     if sql_where == '':
         return []
     data = await db.fetch(f"SELECT * FROM all_users WHERE {sql_where[:-4]};")
