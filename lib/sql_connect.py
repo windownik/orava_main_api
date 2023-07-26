@@ -282,6 +282,17 @@ async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = 
 
 
 # получаем данные с одним фильтром
+async def get_users_by_phone_list(db: Depends, users_phones: list[int]):
+    sql_where = ''
+    for phone in users_phones:
+        sql_where = f'{sql_where}phone = {phone} OR '
+    if sql_where == '':
+        return []
+    data = await db.fetch(f"SELECT * FROM all_users WHERE {sql_where[:-4]};")
+    return data
+
+
+# получаем данные с одним фильтром
 async def get_users_in_chat(db: Depends, chat_id: int, offset: int = 0, limit: int = 10):
     data = await db.fetch(f"SELECT all_users.user_id, all_users.phone, all_users.email, all_users.name, "
                           f"all_users.middle_name, all_users.surname, all_users.image_link, "

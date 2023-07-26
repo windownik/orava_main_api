@@ -140,6 +140,26 @@ async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connect
                             headers={'content-type': 'application/json; charset=utf-8'})
 
 
+@app.get(path='/check_user_in_contact', tags=['User'], responses=dialog_created_res)
+async def check_user_in_contact(access_token: str, phone_list: list[int], db=Depends(data_b.connection)):
+    """Here you can get user by phone number, use for search\n
+    access_token: This is access auth token. You can get it when create account, login"""
+    owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not owner_id:
+        return Response(content="bad access token",
+                        status_code=_status.HTTP_401_UNAUTHORIZED)
+    user_data = await conn.get_users_by_phone_list(db=db, users_phones=phone_list)
+    all_users_list = []
+    for one in user_data:
+        user = User.parse_obj(one)
+        all_users_list.append(user.dict())
+
+    return JSONResponse(status_code=_status.HTTP_200_OK,
+                        content={"ok": True,
+                                 "user_list": all_users_list},
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
 @app.delete(path='/user', tags=['User'], responses=update_user_res)
 async def delete_user(access_token: str, db=Depends(data_b.connection)):
     """Delete all user information.\n
