@@ -150,13 +150,17 @@ async def check_user_in_contact(access_token: str, phone_list: list[int], db=Dep
                         status_code=_status.HTTP_401_UNAUTHORIZED)
     user_data = await conn.get_users_by_phone_list(db=db, users_phones=phone_list)
     all_users_list = []
+    phone_list_in_service = []
     for one in user_data:
         user = User.parse_obj(one)
         all_users_list.append(user.dict())
+        phone_list_in_service.append(user.phone)
 
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
-                                 "user_list": all_users_list},
+                                 "user_list": all_users_list,
+                                 "phones_list": phone_list_in_service
+                                 },
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
