@@ -21,14 +21,6 @@ ip_port = 80 if ip_port is None else ip_port
 ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 
-#
-#
-# @data_b.on_init
-# async def initialization(connect):
-#     # you can run your db initialization code here
-#     await connect.execute("SELECT 1")
-
-
 @app.get(path='/file_download', tags=['For all'])
 async def download_file(file_id: int, db=Depends(data_b.connection), ):
     """Get all company in database"""
@@ -51,21 +43,27 @@ async def download_file(file_id: int, db=Depends(data_b.connection), ):
     little_id = file[0]['little_file_id']
     little_file = await conn.read_data(db=db, table='files', id_name='id', id_data=little_id, name='*')
     middle_id = file[0]['middle_file_id']
+    resp = {"ok": True,
+            'file_type': file[0]['file_type'],
+            'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
+            }
 
-    if not little_file:
-        return JSONResponse(content={"ok": True,
-                                     'file_type': file[0]['file_type'],
-                                     'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
-                                     },
-                            headers={'content-type': 'application/json; charset=utf-8'})
+    if little_file:
+        resp['little_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={little_file[0][0]}"
 
-    return JSONResponse(content={"ok": True,
-                                 'file_type': file[0]['file_type'],
-                                 'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
-                                 'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={little_file[0][0]}",
-                                 'middle_url': f"http://{ip_server}:{ip_port}/file_download?file_id={middle_id}"
-                                 },
+    if little_file:
+        resp['middle_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={middle_id}"
+
+    return JSONResponse(content=resp,
                         headers={'content-type': 'application/json; charset=utf-8'})
+
+    # return JSONResponse(content={"ok": True,
+    #                              'file_type': file[0]['file_type'],
+    #                              'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
+    #                              'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={little_file[0][0]}",
+    #                              'middle_url': f"http://{ip_server}:{ip_port}/file_download?file_id={middle_id}"
+    #                              },
+    #                     headers={'content-type': 'application/json; charset=utf-8'})
 
 
 @app.get(path='/files_in_line', tags=['For all'], responses=upload_files_list_res)
