@@ -105,6 +105,7 @@ async def create_msg_line_table(db):
  from_id INTEGER DEFAULT 0,
  reply_id INTEGER DEFAULT 0,
  chat_id INTEGER DEFAULT 0,
+ to_id INTEGER DEFAULT 0,
  file_id INTEGER DEFAULT 0,
  status TEXT DEFAULT 'not_read',
  read_date BIGINT DEFAULT 0,

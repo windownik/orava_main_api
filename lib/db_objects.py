@@ -39,6 +39,7 @@ class Message(BaseModel):
     from_id: int = 0
     reply_id: int = 0
     chat_id: int = 0
+    to_id: int = 0
     file_id: int = 0
 
     status: str = '0'
