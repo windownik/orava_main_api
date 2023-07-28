@@ -86,12 +86,13 @@ async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
 
 
 @app.post(path='/file_upload', tags=['For all'], responses=upload_files_res)
-async def upload_file(file: UploadFile, access_token: str = '0', db=Depends(data_b.connection), ):
+async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0, db=Depends(data_b.connection), ):
     """
     Upload file to server\n
-    file_type in response: .jpg and . png is image,\n
+    file_type in response: .jpg and .png is image,\n
     .xlsx and .doc is ms_doc,\n
-    other files get type file
+    other files get type file\n
+    msg_id: if file attached to message with msg_id
     """
     user_id = (await conn.get_token(db=db, token_type='access', token=access_token))
     if not user_id:
@@ -123,6 +124,8 @@ async def upload_file(file: UploadFile, access_token: str = '0', db=Depends(data
     f = open(f"{file_path}{filename}", 'wb')
     f.write(b)
     f.close()
+    if msg_id != 0 and user_id != 0:
+        await conn.update_data(table='messages', name='file_id', data=file_id, id_name='msg_id', id_data=msg_id, db=db)
 
     if file_type == 'image':
         middle_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
