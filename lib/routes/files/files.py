@@ -148,7 +148,7 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
     small_filename = f"{small_file_id}.{file.filename.split('.')[1]}"
     await conn.update_data(table='files', name='file_path', data=f"{file_path}{small_filename}",
                            id_data=small_file_id, db=db)
-    await conn.update_data(table='files', name='little_file_id', data=small_file_id,
+    await conn.update_data(table='files', name='little_file_id' if size == 1 else 'middle_file_id', data=small_file_id,
                            id_data=file_id, db=db)
 
     image = Image.open(f"{file_path}{filename}")
