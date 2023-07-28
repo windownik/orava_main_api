@@ -223,11 +223,14 @@ async def create_msg(db: Depends, msg_id: int, msg_type: str, title: str, text: 
 
 
 # Создаем новую запись в базе данных
-async def save_new_file(db: Depends, file_name: str, file_path: str, file_type: str, owner_id: int):
+async def save_new_file(db: Depends, file_name: str, file_path: str, file_type: str, owner_id: int, file_size: int,
+                        client_file_id: int):
     now = datetime.datetime.now()
-    file_id = await db.fetch(f"INSERT INTO files (file_name, file_path, file_type, owner_id, create_date) "
-                             f"VALUES ($1, $2, $3, $4, $5) "
-                             f"ON CONFLICT DO NOTHING RETURNING id;", file_name, file_path, file_type, owner_id, now)
+    file_id = await db.fetch(f"INSERT INTO files (file_name, file_path, file_type, owner_id, file_size, client_file_id,"
+                             f" create_date) "
+                             f"VALUES ($1, $2, $3, $4, $5, $6, $7) "
+                             f"ON CONFLICT DO NOTHING RETURNING *;", file_name, file_path, file_type, owner_id,
+                             file_size, client_file_id, now)
     return file_id
 
 

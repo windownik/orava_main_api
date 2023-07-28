@@ -7,6 +7,7 @@ from fastapi import UploadFile
 import starlette.status as _status
 from lib import sql_connect as conn
 from lib.response_examples import *
+from lib.routes.files.files_scripts import create_file_json
 
 from lib.sql_connect import data_b, app
 from fastapi.responses import FileResponse
@@ -40,19 +41,7 @@ async def download_file(file_id: int, db=Depends(data_b.connection), ):
         return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
                             content={'desc': 'bad file id'})
 
-    little_id = file[0]['little_file_id']
-    little_file = await conn.read_data(db=db, table='files', id_name='id', id_data=little_id, name='*')
-    middle_id = file[0]['middle_file_id']
-    resp = {"ok": True,
-            'file_type': file[0]['file_type'],
-            'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
-            }
-
-    if little_id != 0:
-        resp['little_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={little_file[0][0]}"
-
-    if middle_id != 0:
-        resp['middle_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={middle_id}"
+    resp = create_file_json(file[0])
 
     return JSONResponse(content=resp,
                         headers={'content-type': 'application/json; charset=utf-8'})
@@ -71,15 +60,9 @@ async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
         file = await conn.read_data(db=db, table='files', id_name='id', id_data=int(file_id), name='*')
         if not file:
             continue
+
         files_list.append(
-            {
-                'file_id': file[0]['id'],
-                'name': file[0]['file_name'],
-                'file_type': file[0]['file_type'],
-                'owner_id': file[0]['owner_id'],
-                'create_date': str(file[0]['create_date']),
-                'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}"
-            }
+            create_file_json(file)
         )
     return JSONResponse(content={"ok": True, 'desc': "all file list by file line", 'files': files_list},
                         headers={'content-type': 'application/json; charset=utf-8'})
@@ -87,7 +70,7 @@ async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
 
 @app.post(path='/file_upload', tags=['For all'], responses=upload_files_res)
 async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0, file_size: int = 0,
-                      db=Depends(data_b.connection), ):
+                      client_file_id: int = 0, db=Depends(data_b.connection), ):
     """
     Upload file to server\n
     file_type in response: .jpg and .png is image,\n
@@ -115,8 +98,10 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
     else:
         file_path = f'files/file/'
         file_type = 'file'
-    file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
-                                        file_type=file_type))[0][0]
+    file_data = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
+                                          file_type=file_type, file_size=file_size, client_file_id=client_file_id))[0]
+    file_id = file_data[0]
+
     filename = f"{file_id}.{file.filename.split('.')[1]}"
     await conn.update_data(table='files', name='file_path', data=f"{file_path}{filename}", id_data=file_id, db=db)
     b = file.file.read()
@@ -126,10 +111,12 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
     f.close()
 
     resp = {'ok': True,
-            'creator_id': user_id,
-            'file_name': file.filename,
-            'file_type': file_type,
-            'file_id': file_id,
+            'file_id': file_data['id'],
+            'file_name': file_data['file_name'],
+            'file_type': file_data['file_type'],
+            'creator_id': file_data['owner_id'],
+            'file_size': file_data['file_size'],
+            'client_file_id': file_data['client_file_id'],
             'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
             }
     if file_type == 'image':
@@ -142,7 +129,6 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
         resp['little_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={small_file_id}"
 
     if file_type == 'video':
-
         screen_id = await save_video_screen(db=db, file=file, user_id=user_id, file_id=file_id, filename=filename)
         resp['screen_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={screen_id}"
 
@@ -158,7 +144,7 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
 async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_type: str, user_id: int, file_id: int,
                           filename: str, size: int = 1):
     small_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
-                                              file_type=file_type))[0][0]
+                                              file_type=file_type, file_size=0, client_file_id=0))[0][0]
     small_filename = f"{small_file_id}.{file.filename.split('.')[1]}"
     await conn.update_data(table='files', name='file_path', data=f"{file_path}{small_filename}",
                            id_data=small_file_id, db=db)
@@ -178,7 +164,7 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
 async def save_video_screen(db: Depends, file: UploadFile, user_id: int, file_id: int,
                             filename: str):
     screen_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path='files/img/', owner_id=user_id,
-                                               file_type='image'))[0][0]
+                                               file_type='image', file_size=0, client_file_id=0))[0][0]
     small_filename = f"{screen_file_id}.jpg"
     await conn.update_data(table='files', name='file_path', data=f"files/img/{small_filename}",
                            id_data=screen_file_id, db=db)
