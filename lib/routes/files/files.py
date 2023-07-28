@@ -125,8 +125,10 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
 
         small_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
                                               user_id=user_id, file_id=file_id, filename=filename, )
-        resp['middle_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={middle_file_id}"
-        resp['little_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={small_file_id}"
+        if middle_file_id != 0:
+            resp['middle_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={middle_file_id}"
+        if small_file_id != 0:
+            resp['little_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={small_file_id}"
 
     if file_type == 'video':
         screen_id = await save_video_screen(db=db, file=file, user_id=user_id, file_id=file_id, filename=filename)
@@ -155,9 +157,13 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
     width, height = image.size
     coefficient = height / 100
     new_width = (width / coefficient) * size
-
-    resized_image = image.resize((int(new_width), 100 * size))
-    resized_image.save(f"{file_path}{small_filename}")
+    try:
+        resized_image = image.resize((int(new_width), 100 * size))
+        resized_image.save(f"{file_path}{small_filename}")
+    except Exception as ex:
+        print(ex)
+        await conn.delete_where(table='files', id_name='id', data=small_file_id, db=db)
+        small_file_id = 0
     return small_file_id
 
 
