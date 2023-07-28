@@ -117,55 +117,40 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
     file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
                                         file_type=file_type))[0][0]
     filename = f"{file_id}.{file.filename.split('.')[1]}"
-    await conn.update_data(table='files', name='file_path', data=f"{file_path}{filename}",
-                           id_data=file_id, db=db)
+    await conn.update_data(table='files', name='file_path', data=f"{file_path}{filename}", id_data=file_id, db=db)
     b = file.file.read()
 
     f = open(f"{file_path}{filename}", 'wb')
     f.write(b)
     f.close()
-    if msg_id != 0 and user_id != 0:
-        await conn.update_data(table='messages', name='file_id', data=file_id, id_name='msg_id', id_data=msg_id, db=db)
 
+    resp = {'ok': True,
+            'creator_id': user_id,
+            'file_name': file.filename,
+            'file_type': file_type,
+            'file_id': file_id,
+            'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
+            }
     if file_type == 'image':
         middle_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
                                                user_id=user_id, file_id=file_id, filename=filename, size=2)
 
         small_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
                                               user_id=user_id, file_id=file_id, filename=filename, )
-
-        return JSONResponse(content={'ok': True,
-                                     'creator_id': user_id,
-                                     'file_name': file.filename,
-                                     'file_type': file_type,
-                                     'file_id': file_id,
-                                     'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
-                                     'middle_url': f"http://{ip_server}:{ip_port}/file_download?file_id={middle_file_id}",
-                                     'little_url': f"http://{ip_server}:{ip_port}/file_download?file_id={small_file_id}"
-                                     },
-                            headers={'content-type': 'application/json; charset=utf-8'})
+        resp['middle_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={middle_file_id}"
+        resp['little_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={small_file_id}"
 
     elif file_type == 'video':
 
         screen_id = await save_video_screen(db=db, file=file, user_id=user_id, file_id=file_id, filename=filename)
+        resp['screen_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={screen_id}"
 
-        return JSONResponse(content={'ok': True,
-                                     'creator_id': user_id,
-                                     'file_name': file.filename,
-                                     'file_type': file_type,
-                                     'file_id': file_id,
-                                     'video_url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
-                                     'screen_url': f"http://{ip_server}:{ip_port}/file_download?file_id={screen_id}"
-                                     },
-                            headers={'content-type': 'application/json; charset=utf-8'})
+    if msg_id != 0 and user_id != 0:
+        await conn.update_data(table='messages', name='file_id', data=file_id, id_name='msg_id', id_data=msg_id, db=db)
+        await conn.update_data(table='messages', name='status', data='not_read', id_name='msg_id',
+                               id_data=msg_id, db=db)
 
-    return JSONResponse(content={'ok': True,
-                                 'creator_id': user_id,
-                                 'file_name': file.filename,
-                                 'file_type': file_type,
-                                 'file_id': file_id,
-                                 'url': f"http://{ip_server}:{ip_port}/file_download?file_id={file_id}",
-                                 },
+    return JSONResponse(content=resp,
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
