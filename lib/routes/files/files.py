@@ -121,7 +121,7 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
             }
     if file_type == 'image':
         middle_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
-                                               user_id=user_id, file_id=file_id, filename=filename, size=2)
+                                               user_id=user_id, file_id=file_id, filename=filename, size=3)
 
         small_file_id = await save_resize_img(db=db, file=file, file_path=file_path, file_type=file_type,
                                               user_id=user_id, file_id=file_id, filename=filename, )
