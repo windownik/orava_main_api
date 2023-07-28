@@ -86,7 +86,8 @@ async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
 
 
 @app.post(path='/file_upload', tags=['For all'], responses=upload_files_res)
-async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0, db=Depends(data_b.connection), ):
+async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0, file_size: int = 0,
+                      db=Depends(data_b.connection), ):
     """
     Upload file to server\n
     file_type in response: .jpg and .png is image,\n
