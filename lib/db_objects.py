@@ -4,6 +4,7 @@ from fastapi import Depends
 from pydantic import BaseModel
 
 from lib import sql_connect as conn
+from lib.routes.files.files_scripts import create_file_json
 
 
 class User(BaseModel):
@@ -118,13 +119,22 @@ async def add_user_and_reply_to_msg(db: Depends, msg: Message, reqwest_user: Use
     await msg.add_user_to_msg(reqwest_user=reqwest_user, db=db)
 
     msg_dict = msg.dict()
-
+    msg_dict = await add_file_to_dict(msg_dict=msg_dict, msg=msg, db=db)
     if msg.reply_id != 0:
         reply_msg_data = await conn.read_data(db=db, table='messages', id_name='msg_id', id_data=msg.reply_id)
         reply_msg: Message = Message.parse_obj(reply_msg_data[0])
         await reply_msg.add_user_to_msg(reqwest_user=reqwest_user, db=db)
 
         msg_dict['reply'] = reply_msg.dict()
+    return msg_dict
+
+
+async def add_file_to_dict(msg_dict: dict, msg: Message, db: Depends,) -> dict:
+    if msg.file_id == 0:
+        return msg_dict
+    file = await conn.read_data(db=db, table='files', id_name='id', id_data=msg.file_id, name='*')
+    resp = create_file_json(file[0])
+    msg_dict['file'] = resp
     return msg_dict
 
 
