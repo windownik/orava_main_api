@@ -163,6 +163,9 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
     except Exception as ex:
         print(ex)
         await conn.delete_where(table='files', id_name='id', data=small_file_id, db=db)
+        await conn.update_data(table='files', name='little_file_id' if size == 1 else 'middle_file_id',
+                               data=0,
+                               id_data=file_id, db=db)
         small_file_id = 0
     return small_file_id
 
