@@ -69,7 +69,7 @@ async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
 
 
 @app.post(path='/file_upload', tags=['For all'], responses=upload_files_res)
-async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0, file_size: int = 0,
+async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0,
                       client_file_id: int = 0, db=Depends(data_b.connection), ):
     """
     Upload file to server\n
@@ -99,7 +99,7 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
         file_path = f'files/file/'
         file_type = 'file'
     file_data = (await conn.save_new_file(db=db, file_name=file.filename, file_path=file_path, owner_id=user_id,
-                                          file_type=file_type, file_size=file_size, client_file_id=client_file_id))[0]
+                                          file_type=file_type, file_size=file.size, client_file_id=client_file_id))[0]
     file_id = file_data[0]
 
     filename = f"{file_id}.{file.filename.split('.')[1]}"
