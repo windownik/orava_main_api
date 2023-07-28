@@ -99,7 +99,7 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
         user_id = 0
     else:
         user_id = user_id[0][0]
-    if (file.filename.split('.')[1]).lower() == 'jpg' or (file.filename.split('.')[1]).lower() == 'png':
+    if (file.filename.split('.')[-1]).lower() == 'jpg' or (file.filename.split('.')[-1]).lower() == 'png':
         file_path = f'files/img/'
         file_type = 'image'
     elif file.filename.split('.')[1] == 'xlsx' or file.filename.split('.')[1] == 'doc':
@@ -140,7 +140,7 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
         resp['middle_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={middle_file_id}"
         resp['little_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={small_file_id}"
 
-    elif file_type == 'video':
+    if file_type == 'video':
 
         screen_id = await save_video_screen(db=db, file=file, user_id=user_id, file_id=file_id, filename=filename)
         resp['screen_url'] = f"http://{ip_server}:{ip_port}/file_download?file_id={screen_id}"
