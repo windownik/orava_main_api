@@ -140,9 +140,9 @@ async def add_file_to_dict(msg_dict: dict, msg: Message, db: Depends,) -> dict:
 
 class Community(BaseModel):
     community_id: int = 0
-    owner_user: User = None
+    owner_id: int = 0
     name: str = '0'
-    main_chat: Chat = None
+    main_chat_id: int = 0
     join_code: str = '0'
     img_url: str = '0'
     little_img_url: str = '0'
@@ -150,8 +150,9 @@ class Community(BaseModel):
     open_profile: bool = True
     send_media: bool = True
     send_voice: bool = True
-    deleted_date: datetime.datetime = None
-    create_date: datetime.datetime = None
+    moder_create_chat: bool = True
+    deleted_date: int = 0
+    create_date: int = 0
 
 
 class ReceiveMessage(BaseModel):

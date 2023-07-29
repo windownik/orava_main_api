@@ -147,10 +147,11 @@ async def create_community_table(db):
  join_code TEXT UNIQUE,
  img_url TEXT DEFAULT '0',
  little_img_url TEXT DEFAULT '0',
- status TEXT DEFAULT 'open',
+ status TEXT DEFAULT 'create',
  open_profile BOOLEAN DEFAULT true,
  send_media BOOLEAN DEFAULT true,
  send_voice BOOLEAN DEFAULT true,
+ moder_create_chat BOOLEAN DEFAULT true,
  deleted_date BIGINT DEFAULT 0,
  create_date BIGINT DEFAULT 0
  )''')
@@ -258,6 +259,18 @@ async def save_msg(db: Depends, msg: dict):
                           f"VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING RETURNING msg_id;",
                           msg['text'], msg['from_id'], msg['reply_id'], msg['chat_id'], msg['file_id'],
                           int(time.mktime(now.timetuple())))
+    return data
+
+
+# Создаем новое комюнити
+async def create_community(db: Depends, owner_id: int, name: str, main_chat_id: int, join_code: str, open_profile: bool,
+                           send_media: bool, send_voice: bool, moder_create_chat: bool):
+    now = datetime.datetime.now()
+    data = await db.fetch(f"INSERT INTO community (owner_id, name, main_chat_id, join_code, open_profile, send_media, "
+                          f"send_voice, moder_create_chat, create_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) "
+                          f"ON CONFLICT DO NOTHING RETURNING *;",
+                          owner_id, name, main_chat_id, join_code, open_profile, send_media, send_voice,
+                          moder_create_chat, int(time.mktime(now.timetuple())))
     return data
 
 
@@ -523,6 +536,15 @@ async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang
         await db.fetch(f"UPDATE all_users SET push=$1 WHERE user_id=$2;",
                        push, user_id)
     return user_id
+
+
+# Обновляем данные в комюнити
+async def update_community(db: Depends, community_id: int, name: str, open_profile: bool,
+                           send_media: bool, send_voice: bool, moder_create_chat: bool):
+    data = await db.fetch(f"UPDATE community SET name=$1, open_profile=$2, send_media=$3, "
+                          f"send_voice=$4, moder_create_chat=$5 WHERE community_id=$6;",
+                          name, open_profile, send_media, send_voice, moder_create_chat, community_id)
+    return data
 
 
 # Обновляем информацию
