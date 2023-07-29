@@ -83,7 +83,7 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
         user_id = 0
     else:
         user_id = user_id[0][0]
-    if (file.filename.split('.')[-1]).lower() == 'jpg' or (file.filename.split('.')[-1]).lower() == 'png':
+    if (file.filename.split('.')[-1]).lower() == 'jpg' or (file.filename.split('.')[-1]).lower() == 'jpeg':
         file_path = f'files/img/'
         file_type = 'image'
     elif file.filename.split('.')[1] == 'xlsx' or file.filename.split('.')[1] == 'doc':
