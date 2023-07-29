@@ -5,7 +5,7 @@ from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
-from lib.db_objects import Chat, User
+from lib.db_objects import Chat, User, Community
 from lib.response_examples import *
 from lib.sql_connect import data_b, app
 
@@ -39,9 +39,16 @@ async def get_all_communities_chats_dialogs(access_token: str, db=Depends(data_b
 
         list_chats.append(await chat.to_json(db, reqwest_user=user))
 
+    community_list = []
+    comm_data = await conn.get_users_community(user_id=owner_id[0][0], db=db)
+    for _comm in comm_data:
+        comm = Community.parse_obj(_comm)
+        community_list.append(comm.dict())
+
     return JSONResponse(status_code=_status.HTTP_200_OK,
                         content={"ok": True,
                                  'user': user.dict(),
                                  "chats": list_chats,
+                                 "community_list": community_list,
                                  },
                         headers={'content-type': 'application/json; charset=utf-8'})

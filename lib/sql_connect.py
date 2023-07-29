@@ -379,6 +379,19 @@ async def get_users_chats(db: Depends, user_id: int):
 
 
 # получаем данные с одним фильтром
+async def get_users_community(db: Depends, user_id: int):
+    data = await db.fetch(f"SELECT users_community.community_id, "
+                          f"community.owner_id, community.name, community.main_chat_id, community.join_code, "
+                          f"community.img_url, community.little_img_url, community.status, community.open_profile, "
+                          f"community.send_media, community.send_voice, community.moder_create_chat, "
+                          f"community.deleted_date, community.create_date "
+                          f"FROM users_community JOIN community "
+                          f"ON users_community.community_id = community.community_id "
+                          f"WHERE users_community.user_id = $1 AND community.deleted_date != 0;", user_id, )
+    return data
+
+
+# получаем данные с одним фильтром
 async def check_user_in_chat(db: Depends, user_id: int, chat_id: int):
     data = await db.fetch(f"SELECT users_chat.chat_id "
                           f"FROM users_chat JOIN all_chats "
