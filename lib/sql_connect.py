@@ -387,7 +387,7 @@ async def get_users_community(db: Depends, user_id: int):
                           f"community.deleted_date, community.create_date "
                           f"FROM users_community JOIN community "
                           f"ON users_community.community_id = community.community_id "
-                          f"WHERE users_community.user_id = $1 AND community.deleted_date != 0;", user_id, )
+                          f"WHERE users_community.user_id = $1 AND community.deleted_date = 0;", user_id, )
     return data
 
 
