@@ -49,6 +49,7 @@ async def create_new_community(access_token: str, com_name: str, chat_name: str,
     await conn.update_data(db=db, table='all_chats', name='community_id', data=community.community_id,
                            id_name='chat_id', id_data=chat.chat_id)
     await conn.save_user_to_chat(db=db, chat_id=chat.chat_id, user_id=user.user_id)
+    await conn.save_user_to_comm(db=db, com_id=community.community_id, user_id=user.user_id, status='owner')
 
     return JSONResponse(content={"ok": True,
                                  'main_chat': await chat.to_json(db=db, reqwest_user=user),

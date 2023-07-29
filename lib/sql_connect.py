@@ -159,6 +159,20 @@ async def create_community_table(db):
 
 # Создаем новую таблицу
 # Таблица для записи всех видов сообщений для всех пользователей
+async def create_users_comm_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS users_community (
+ id SERIAL PRIMARY KEY,
+ community_id INTEGER DEFAULT 0,
+ user_id INTEGER DEFAULT 0,
+ status TEXT DEFAULT 'user',
+ ban BOOLEAN DEFAULT false,
+ deleted_date BIGINT DEFAULT 0,
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
 async def create_users_chats_table(db):
     await db.execute(f'''CREATE TABLE IF NOT EXISTS users_chat (
  id SERIAL PRIMARY KEY,
@@ -285,7 +299,16 @@ async def create_chat(db: Depends, owner_id: int, name: str = '0', img_url: str 
     return data
 
 
-# Создаем новый чат
+# Добавляем пользователя в комюнити
+async def save_user_to_comm(db: Depends, com_id: int, user_id: int, status: str = 'user'):
+    now = datetime.datetime.now()
+    data = await db.fetch(f"INSERT INTO users_community (community_id, user_id, status, create_date) "
+                          f"VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING RETURNING *;",
+                          com_id, user_id, status, int(time.mktime(now.timetuple())))
+    return data
+
+
+# Добавляем пользователя в чат
 async def save_user_to_chat(db: Depends, chat_id: int, user_id: int, status: str = 'user'):
     now = datetime.datetime.now()
     data = await db.fetch(f"INSERT INTO users_chat (chat_id, user_id, status, create_date) "
