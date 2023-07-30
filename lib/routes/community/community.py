@@ -86,6 +86,37 @@ async def get_community_by_id(access_token: str, community_id: int, db=Depends(d
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
+@app.get(path='/connect_to_community', tags=['Community'], responses=get_me_res)
+async def connect_to_community_by_code(access_token: str, code: str, db=Depends(data_b.connection), ):
+    """Here you can connect user to community by code\n
+    access_token: This is access auth token. You can get it when create account, login"""
+    owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not owner_id:
+        return Response(content="bad access token",
+                        status_code=_status.HTTP_401_UNAUTHORIZED)
+    user_data = await conn.read_data(db=db, table='all_users', id_name='user_id', id_data=owner_id[0][0])
+    user = User.parse_obj(user_data[0])
+    com_data = await conn.read_data(db=db, table='community', id_name='join_code', id_data=code)
+    if not com_data:
+        return Response(content="bad community code",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+
+    community: Community = Community.parse_obj(com_data[0])
+    chat_data = await conn.read_data(db=db, table='all_chats', id_name='chat_id', id_data=community.main_chat_id)
+
+    chat: Chat = Chat.parse_obj(chat_data[0])
+    await conn.save_user_to_chat(db=db, chat_id=chat.chat_id, user_id=user.user_id)
+    await conn.save_user_to_comm(db=db, com_id=community.community_id, user_id=user.user_id, status='owner')
+
+    res = {"ok": True,
+           'main_chat': await chat.to_json(db=db, reqwest_user=user),
+           'community': community.dict()
+           }
+    return JSONResponse(content=res,
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
 @app.put(path='/community', tags=['Community'], responses=create_user_res)
 async def create_new_community(access_token: str, community_id: int, chat_name: str, com_name: str,
                                open_profile: bool = True, send_media: bool = True, moder_create_chat: bool = True,
