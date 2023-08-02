@@ -6,8 +6,25 @@ get_me_res = {
                 "examples": {
                     "odd": {
                         "summary": "Success",
-                        "value": {"ok": True,
-                                  'user': {}}
+                        "value": {
+                            "ok": True,
+                            "user": {
+                                "user_id": 1,
+                                "name": "Nik",
+                                "middle_name": "0",
+                                "surname": "Ivanov",
+                                "phone": 375123456,
+                                "email": "0",
+                                "image_link": "http://jfnskjf",
+                                "image_link_little": "http://sdfsfsdf",
+                                "description": "0",
+                                "lang": "ru",
+                                "status": "active",
+                                "last_active": 1688890372,
+                                "create_date": 1688890372
+                            }
+
+                        }
                     },
                 }
             }
@@ -20,7 +37,157 @@ get_me_res = {
                 "examples": {
                     "odd": {
                         "summary": "Success",
-                        "value": 'bad access token'
+                        "value": {"ok": False,
+                                  'description': 'Bad auth_id or access_token'}
+                    },
+                }
+            }
+        }
+    },
+}
+
+get_users_by_contact_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": True,
+                                  "user_list": ["user_object", "user_object", "user_object"],
+                                  "phones_list": [43543543, 54363642345, 645746]
+                                  }
+                    },
+                }
+            }
+        }
+    },
+    401: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": False,
+                                  'description': 'Bad auth_id or access_token'}
+                    },
+                }
+            }
+        }
+    },
+}
+
+check_sms_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": True,
+                                  'description': 'Confirm phone number', }
+                    },
+                }
+            }
+        }
+    },
+    400: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {
+                            "ok": False,
+                            'description': 'SMS code not confirm'
+                        }
+                    },
+                }
+            }
+        }
+    },
+}
+
+check_email_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": True,
+                                  'description': 'This email is not in database', }
+                    },
+                }
+            }
+        }
+    },
+    400: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {
+                            "ok": False,
+                            'description': 'This email is in database',
+                        }
+                    },
+                }
+            }
+        }
+    },
+}
+
+check_phone_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": True,
+                                  'description': 'This phone is not in database', }
+                    },
+                }
+            }
+        }
+    },
+    400: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {
+                            "ok": False,
+                            'description': 'This phone is in database',
+                        }
+                    },
+                }
+            }
+        }
+    },
+}
+
+send_sms_code_to_phone_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": True,
+                                  'description': 'Code for phone created'}
                     },
                 }
             }
@@ -38,7 +205,8 @@ access_token_res = {
                         "summary": "Success",
                         "value": {"ok": True,
                                   'user_id': 12,
-                                  'access_token': 'fFsok0mod3y5mgoe203odk3f'}
+                                  'access_token': 'fFsok0mod3y5mgoe203odk3f',
+                                  'refresh_token': 'e45wfknwfooii3n43948unf3n932k'}
                     },
                 }
             }
@@ -51,7 +219,8 @@ access_token_res = {
                 "examples": {
                     "odd": {
                         "summary": "Success",
-                        "value": 'bad refresh token, please login'
+                        "value": {"ok": False,
+                                  'description': 'bad refresh token, please login'}
                     },
                 }
             }
@@ -68,7 +237,137 @@ create_user_res = {
                     "odd": {
                         "summary": "Success",
                         "value": {"ok": True,
-                                  'user_id': 1,
+                                  'user': {
+                                      "user_id": 1,
+                                      "name": "Nik",
+                                      "middle_name": "0",
+                                      "surname": "Ivanov",
+                                      "phone": 375123456,
+                                      "email": "0",
+                                      "image_link": "jfnskjf",
+                                      "image_link_little": "sdfsfsdf",
+                                      "description": "0",
+                                      "lang": "ru",
+                                      "status": "active",
+                                      "last_active": 1688890372,
+                                      "create_date": 1688890372
+                                  },
+                                  'access_token': '123',
+                                  'refresh_token': '123'}
+                    },
+                }
+            }
+        }
+    },
+}
+
+create_community_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {
+                            "ok": True,
+                            "main_chat": {
+                                "chat_id": 8,
+                                "owner_user": {
+                                    "user_id": 1,
+                                    "name": "Nik",
+                                    "middle_name": "0",
+                                    "surname": "Ivanov",
+                                    "phone": 375123456,
+                                    "email": "0",
+                                    "image_link": "jfnskjf",
+                                    "image_link_little": "sdfsfsdf",
+                                    "description": "0",
+                                    "lang": "ru",
+                                    "status": "active",
+                                    "last_active": 1688890372,
+                                    "create_date": 1688890372
+                                },
+                                "all_users_count": 1,
+                                "all_users": [
+                                    {
+                                        "user_id": 1,
+                                        "name": "Nik",
+                                        "middle_name": "0",
+                                        "surname": "Ivanov",
+                                        "phone": 375123456,
+                                        "email": "0",
+                                        "image_link": "jfnskjf",
+                                        "image_link_little": "sdfsfsdf",
+                                        "description": "0",
+                                        "lang": "ru",
+                                        "status": "active",
+                                        "last_active": 1688890372,
+                                        "create_date": 1688890372
+                                    }
+                                ],
+                                "community_id": 0,
+                                "name": "Chat with owner",
+                                "img_url": "0",
+                                "little_img_url": "0",
+                                "chat_type": "main_chat",
+                                "status": "create",
+                                "open_profile": True,
+                                "send_media": True,
+                                "send_voice": True,
+                                "deleted_date": 0,
+                                "create_date": 1690962201,
+                                "unread_message": [],
+                                "unread_count": 0
+                            },
+                            "community": {
+                                "community_id": 5,
+                                "owner_id": 1,
+                                "name": "Super comunity",
+                                "main_chat_id": 8,
+                                "join_code": "3czmfs",
+                                "img_url": "0",
+                                "little_img_url": "0",
+                                "status": "create",
+                                "open_profile": True,
+                                "send_media": True,
+                                "send_voice": True,
+                                "moder_create_chat": True,
+                                "deleted_date": 0,
+                                "create_date": 1690962201
+                            }
+                        }
+                    },
+                }
+            }
+        }
+    },
+}
+
+create_chat_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": True,
+                                  'user': {
+                                      "user_id": 1,
+                                      "name": "Nik",
+                                      "middle_name": "0",
+                                      "surname": "Ivanov",
+                                      "phone": 375123456,
+                                      "email": "0",
+                                      "image_link": "jfnskjf",
+                                      "image_link_little": "sdfsfsdf",
+                                      "description": "0",
+                                      "lang": "ru",
+                                      "status": "active",
+                                      "last_active": 1688890372,
+                                      "create_date": 1688890372
+                                  },
                                   'access_token': '123',
                                   'refresh_token': '123'}
                     },
@@ -95,7 +394,7 @@ update_user_res = {
     },
 }
 
-update_user_status_res = {
+delete_user_res = {
     200: {
         "description": "Success",
         "content": {
@@ -104,24 +403,7 @@ update_user_status_res = {
                     "odd": {
                         "summary": "Success",
                         "value": {"ok": True,
-                                  'desc': 'users status updated'}
-                    },
-                }
-            }
-        }
-    },
-}
-
-update_user_profession_res = {
-    200: {
-        "description": "Success",
-        "content": {
-            "application/json": {
-                "examples": {
-                    "odd": {
-                        "summary": "Success",
-                        "value": {"ok": True,
-                                  'description': 'users work list updated'}
+                                  'desc': 'all users information deleted'}
                     },
                 }
             }
@@ -211,6 +493,32 @@ upload_files_res = {
     }
 }
 
+create_file_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value":
+                            {'ok': True,
+                             'desc': "all file list by file line",
+                             'files': [{
+                                 'file_id': 22,
+                                 'name': '12.jpg',
+                                 'file_type': 'image',
+                                 'owner_id': 12,
+                                 'create_date': '2023-01-17 21:54:23.738397',
+                                 'url': f"http://127.0.0.1:80/file_download?file_id=12"
+                             }]}
+                    }
+                },
+            }
+        }
+    }
+}
+
 upload_files_list_res = {
     200: {
         "description": "Success",
@@ -292,7 +600,7 @@ send_push_res = {
     },
 }
 
-dialog_created_res = {
+create_dialog_res = {
     200: {
         "description": "Success",
         "content": {
@@ -348,7 +656,7 @@ dialog_created_res = {
     },
 }
 
-new_msg_created_res = {
+delete_dialog_res = {
     200: {
         "description": "Success",
         "content": {
@@ -356,7 +664,55 @@ new_msg_created_res = {
                 "examples": {
                     "odd": {
                         "summary": "Success",
-                        "value": {"ok": True, 'desc': 'New message was created successfully.'}
+                        "value": {"ok": True,
+                                  "description": 'dialog and all messages was deleted'}
+                    },
+                }
+            }
+        }
+    },
+    400: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": False,
+                                  'description': "not enough rights", }
+                    },
+                }
+            }
+        }
+    },
+    401: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": False,
+                                  'description': "bad access token", }
+                    },
+                }
+            }
+        }
+    },
+}
+
+get_all_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {"ok": True,
+                                  'user': "{user_object}",
+                                  "chats": ["{chat_object}", "{chat_object}"],
+                                  "community_list": ["{community_object}", "{community_object}"]}
                     },
                 }
             }

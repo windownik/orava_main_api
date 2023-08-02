@@ -53,9 +53,9 @@ async def login_user(phone: int, db=Depends(data_b.connection)):
     """Login user in service by phone number"""
     user_data = await conn.read_data(db=db, name='*', table='all_users', id_name='phone', id_data=phone)
     if not user_data:
-        return JSONResponse(content={"ok": True,
+        return JSONResponse(content={"ok": False,
                                      'description': 'This email is not in database', },
-                            status_code=_status.HTTP_200_OK,
+                            status_code=_status.HTTP_400_BAD_REQUEST,
                             headers={'content-type': 'application/json; charset=utf-8'})
 
     user = User.parse_obj(user_data[0])
@@ -72,9 +72,9 @@ async def login_user(phone: int, db=Depends(data_b.connection)):
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/check_email', tags=['Auth'], responses=get_me_res)
+@app.get(path='/check_email', tags=['Auth'], responses=check_email_res)
 async def check_email(email: str, db=Depends(data_b.connection), ):
-    """Here you can check your email.
+    """Here you can check your email.\n
     email: string email for check it in db"""
 
     user_data = await conn.read_data(db=db, name='*', table='all_users', id_name='email', id_data=email)
@@ -85,13 +85,13 @@ async def check_email(email: str, db=Depends(data_b.connection), ):
                             headers={'content-type': 'application/json; charset=utf-8'})
     return JSONResponse(content={"ok": False,
                                  'description': 'This email is in database', },
-                        status_code=_status.HTTP_200_OK,
+                        status_code=_status.HTTP_400_BAD_REQUEST,
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/check_phone', tags=['Auth'], responses=get_me_res)
+@app.get(path='/check_phone', tags=['Auth'], responses=check_phone_res)
 async def check_phone(phone: int, db=Depends(data_b.connection), ):
-    """Here you can check your phone.
+    """Here you can check your phone. Phone number is unique\n
     phone: int phone for check it in db"""
 
     user_data = await conn.read_data(db=db, name='*', table='all_users', id_name='phone', id_data=phone)
@@ -102,11 +102,11 @@ async def check_phone(phone: int, db=Depends(data_b.connection), ):
                             headers={'content-type': 'application/json; charset=utf-8'})
     return JSONResponse(content={"ok": False,
                                  'description': 'This phone is in database', },
-                        status_code=_status.HTTP_200_OK,
+                        status_code=_status.HTTP_400_BAD_REQUEST00_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/sms_to_phone', tags=['Auth'], responses=get_me_res)
+@app.get(path='/sms_to_phone', tags=['Auth'], responses=send_sms_code_to_phone_res)
 async def send_sms_to_phone(phone: int, db=Depends(data_b.connection), ):
     """Here you can send sms to your phone.
     phone: int phone for check"""
@@ -114,12 +114,11 @@ async def send_sms_to_phone(phone: int, db=Depends(data_b.connection), ):
     code = random.randrange(1000, 9999)
     await conn.save_new_sms_code(db=db, phone=phone, code="1111")
     return JSONResponse(content={"ok": True,
-                                 'description': 'This phone is not in database', },
-                        status_code=_status.HTTP_200_OK,
-                        headers={'content-type': 'application/json; charset=utf-8'})
+                                 'description': 'Code for phone created', },
+                        status_code=_status.HTTP_200_OK)
 
 
-@app.get(path='/check_sms', tags=['Auth'], responses=get_me_res)
+@app.get(path='/check_sms', tags=['Auth'], responses=check_sms_res)
 async def check_sms_code(phone: int, sms_code: str, db=Depends(data_b.connection), ):
     """Here you can check your phone by sms.
     phone: int phone for check"""
@@ -127,7 +126,7 @@ async def check_sms_code(phone: int, sms_code: str, db=Depends(data_b.connection
     code = await conn.read_data_order(table='sms_code', id_name='phone', id_data=phone, db=db)
     if not code:
         return JSONResponse(content={"ok": False,
-                                     'description': 'Error in db.', },
+                                     'description': 'SMS code not confirm', },
                             status_code=_status.HTTP_400_BAD_REQUEST,
                             headers={'content-type': 'application/json; charset=utf-8'})
     if code[0][2] == sms_code:

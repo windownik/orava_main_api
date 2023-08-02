@@ -18,11 +18,11 @@ ip_port = 80 if ip_port is None else ip_port
 ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 
-@app.post(path='/community', tags=['Community'], responses=create_user_res)
+@app.post(path='/community', tags=['Community'], responses=create_community_res)
 async def create_new_community(access_token: str, com_name: str, chat_name: str, open_profile: bool = True,
                                send_media: bool = True, moder_create_chat: bool = True, send_voice: bool = True,
                                db=Depends(data_b.connection)):
-    """Create community in server.
+    """Create community in server.\n
     com_name: it is community name\n
     chat_name:  this is name of main chat\n
     open_profile: can users open other users profiles\n
@@ -32,8 +32,8 @@ async def create_new_community(access_token: str, com_name: str, chat_name: str,
 
     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not user_id:
-        return Response(content="bad access token",
-                        status_code=_status.HTTP_401_UNAUTHORIZED)
+        return JSONResponse(content={"ok": False, "description": "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
 
     user_data = await conn.read_data(db=db, name='*', table='all_users', id_name='user_id', id_data=user_id[0][0])
     user = User.parse_obj(user_data[0])
@@ -59,7 +59,7 @@ async def create_new_community(access_token: str, com_name: str, chat_name: str,
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/community', tags=['Community'], responses=get_me_res)
+@app.get(path='/community', tags=['Community'], responses=create_community_res)
 async def get_community_by_id(access_token: str, community_id: int, db=Depends(data_b.connection), ):
     """Here you can get community by id\n
     access_token: This is access auth token. You can get it when create account, login"""
@@ -86,7 +86,7 @@ async def get_community_by_id(access_token: str, community_id: int, db=Depends(d
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/connect_to_community', tags=['Community'], responses=get_me_res)
+@app.get(path='/connect_to_community', tags=['Community'], responses=create_community_res)
 async def connect_to_community_by_code(access_token: str, code: str, db=Depends(data_b.connection), ):
     """Here you can connect user to community by code\n
     access_token: This is access auth token. You can get it when create account, login"""
@@ -117,10 +117,11 @@ async def connect_to_community_by_code(access_token: str, code: str, db=Depends(
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.put(path='/community', tags=['Community'], responses=create_user_res)
-async def create_new_community(access_token: str, community_id: int, chat_name: str, com_name: str,
-                               open_profile: bool = True, send_media: bool = True, moder_create_chat: bool = True,
-                               send_voice: bool = True, db=Depends(data_b.connection)):
+@app.put(path='/community', tags=['Community'], responses=create_community_res)
+async def update_community_information(access_token: str, community_id: int, chat_name: str, com_name: str,
+                                       open_profile: bool = True, send_media: bool = True,
+                                       moder_create_chat: bool = True,
+                                       send_voice: bool = True, db=Depends(data_b.connection)):
     """Create community in server.
     com_name: it is community name\n
     chat_name:  this is name of main chat\n

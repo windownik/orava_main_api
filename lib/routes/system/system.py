@@ -21,7 +21,7 @@ async def initialization(db):
 
 @app.get(path='/create_db', tags=['System'], )
 async def init_database(db=Depends(data_b.connection)):
-    """Here you can first initialise database"""
+    """Here you can first initialise database, And create tables"""
 
     await conn.create_users_chats_table(db)
     await conn.create_users_comm_table(db)

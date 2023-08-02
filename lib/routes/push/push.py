@@ -24,14 +24,14 @@ async def initialization(connect):
 
 @app.get(path='/send_push', tags=['Push'], responses=send_push_res)
 async def send_push_notification(access_token: str, user_id: int, title: str, push_body: str, push_type: str,
-                                 main_text: str = '0', msg_id: int = 0, db=Depends(data_b.connection)):
+                                 data: str = '0', msg_id: int = 0, db=Depends(data_b.connection)):
     """
     Send push notifications
     user_id - id of user for sending push\n
     title - Title of push\n
     push_body - Text body of push message\n
-    main_text - Main text of message
-    push_type - can be: 'text_msg', 'deal',
+    data - This is simple str with main data.\n
+    push_type - can be: 'text_msg', 'connect_community' and other,
     """
     owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not owner_id:
@@ -40,7 +40,7 @@ async def send_push_notification(access_token: str, user_id: int, title: str, pu
     push_token = await conn.read_data(db=db, table='all_users', name='push', id_name='user_id', id_data=user_id)
     if not push_token:
         return Response(content="no user in database", status_code=_status.HTTP_400_BAD_REQUEST)
-    send_push(fcm_token=push_token[0][0], title=title, body=push_body, main_text=main_text, push_type=push_type,
+    send_push(fcm_token=push_token[0][0], title=title, body=push_body, data=data, push_type=push_type,
               msg_id=msg_id)
     return JSONResponse(content={'ok': True, 'desc': 'successful send push'},
                         headers={'content-type': 'application/json; charset=utf-8'})
@@ -91,7 +91,7 @@ async def start_sending_push_msg(access_token: str, lang: str, content_type: int
                                      'description': "Bad users account type"},
                             status_code=_status.HTTP_400_BAD_REQUEST)
 
-    admin_id = await conn.get_token_admin(db=db, token_type='access', token=access_token)
+    admin_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not admin_id:
         return JSONResponse(content={"ok": False,
                                      'description': "bad access token or not enough rights"},

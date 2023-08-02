@@ -19,8 +19,8 @@ ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 
 @app.post(path='/user', tags=['User'], responses=create_user_res)
-async def new_user(name: str, surname: str, phone: int, lang: str, image_link: str,
-                   image_link_little: str, midl_name: str = '0', db=Depends(data_b.connection)):
+async def create_new_user(name: str, surname: str, phone: int, lang: str, image_link: str,
+                          image_link_little: str, midl_name: str = '0', db=Depends(data_b.connection)):
     """Create new user in server.
     name: users name\n
     midl_name:  users midl name\n
@@ -67,7 +67,7 @@ async def new_user(name: str, surname: str, phone: int, lang: str, image_link: s
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/user', tags=['User'], responses=get_me_res)
+@app.get(path='/user', tags=['User'], responses=create_user_res)
 async def get_user_information(access_token: str, db=Depends(data_b.connection), user_id: int = 0):
     """Here you can get user by access token, or you can get user with user_id\n
     access_token: This is access auth token. You can get it when create account, login"""
@@ -107,8 +107,7 @@ async def update_user_information(access_token: str, name: str = '0', surname: s
 
     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not user_id:
-        return JSONResponse(content={"ok": False,
-                                     'description': "bad access token"},
+        return JSONResponse(content={"ok": False, 'description': "bad access token"},
                             status_code=_status.HTTP_401_UNAUTHORIZED)
 
     await conn.update_user(db=db, name=name, surname=surname, midl_name=midl_name, image_link=image_link, lang=lang,
@@ -119,14 +118,14 @@ async def update_user_information(access_token: str, name: str = '0', surname: s
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/user_by_phone', tags=['User'], responses=dialog_created_res)
+@app.get(path='/user_by_phone', tags=['User'], responses=get_me_res)
 async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connection)):
     """Here you can get user by phone number, use for search\n
     access_token: This is access auth token. You can get it when create account, login"""
     owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not owner_id:
-        return Response(content="bad access token",
-                        status_code=_status.HTTP_401_UNAUTHORIZED)
+        return JSONResponse(content={"ok": False, 'description': "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
     user_data = await conn.read_data(db=db, table='all_users', id_name='phone', id_data=phone)
     if not user_data:
         return JSONResponse(status_code=_status.HTTP_200_OK,
@@ -140,15 +139,15 @@ async def user_by_phone(access_token: str, phone: int, db=Depends(data_b.connect
                             headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/check_user_in_contact', tags=['User'], responses=dialog_created_res)
+@app.get(path='/check_user_in_contact', tags=['User'], responses=get_users_by_contact_res)
 async def check_user_in_contact(access_token: str, phone_list: str, db=Depends(data_b.connection)):
-    """Here you can get user by phone number, use for check contact book\n
+    """Here you can get user by phone number list, use for check contact book\n
     access_token: This is access auth token. You can get it when create account, login\n
-    phone_list: This list of phone numbers in database example 1234,55678,23454"""
+    phone_list: This list of phone numbers in database example 1234,55678,23454 in string"""
     owner_id = await conn.get_token(db=db, token_type='access', token=access_token)
     if not owner_id:
-        return Response(content="bad access token",
-                        status_code=_status.HTTP_401_UNAUTHORIZED)
+        return JSONResponse(content={"ok": False, 'description': "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
     try:
         phone_list = phone_list.split(',')
         user_data = await conn.get_users_by_phone_list(db=db, users_phones=phone_list)
@@ -173,7 +172,7 @@ async def check_user_in_contact(access_token: str, phone_list: str, db=Depends(d
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.delete(path='/user', tags=['User'], responses=update_user_res)
+@app.delete(path='/user', tags=['User'], responses=delete_user_res)
 async def delete_user(access_token: str, db=Depends(data_b.connection)):
     """Delete all user information.\n
     access_token: This is access auth token. You can get it when create account, login"""
@@ -188,6 +187,6 @@ async def delete_user(access_token: str, db=Depends(data_b.connection)):
                            id_data=user_id[0][0])
     await conn.delete_all_tokens(db=db, user_id=user_id[0][0])
     return JSONResponse(content={"ok": True,
-                                 'desc': 'all users information updated'},
+                                 'desc': 'all users information deleted'},
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})

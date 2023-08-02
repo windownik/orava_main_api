@@ -13,7 +13,7 @@ from lib.sql_connect import data_b, app
 from fastapi.responses import FileResponse
 
 from PIL import Image
-from moviepy.editor import VideoFileClip
+# from moviepy.editor import VideoFileClip
 
 ip_server = os.environ.get("IP_SERVER")
 ip_port = os.environ.get("PORT_SERVER")
@@ -24,7 +24,7 @@ ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 @app.get(path='/file_download', tags=['For all'])
 async def download_file(file_id: int, db=Depends(data_b.connection), ):
-    """Get all company in database"""
+    """Here you download file by id"""
     file = await conn.read_data(db=db, table='files', id_name='id', id_data=file_id, name='*')
     if not file:
         return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
@@ -33,9 +33,9 @@ async def download_file(file_id: int, db=Depends(data_b.connection), ):
     return FileResponse(path=file_path, media_type='multipart/form-data', filename=file[0]['file_name'])
 
 
-@app.get(path='/file', tags=['For all'])
-async def download_file(file_id: int, db=Depends(data_b.connection), ):
-    """Get all company in database"""
+@app.get(path='/file', tags=['For all'], responses=create_file_res)
+async def get_file_links_name_and_other(file_id: int, db=Depends(data_b.connection), ):
+    """Get all information about file by file_id"""
     file = await conn.read_data(db=db, table='files', id_name='id', id_data=file_id, name='*')
     if not file:
         return JSONResponse(status_code=_status.HTTP_400_BAD_REQUEST,
@@ -47,34 +47,15 @@ async def download_file(file_id: int, db=Depends(data_b.connection), ):
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/files_in_line', tags=['For all'], responses=upload_files_list_res)
-async def get_files_by_line(file_id_line: str, db=Depends(data_b.connection)):
-    """Get all files in file_id_line\n
-    file_id_line - '1,2,3,4,5,6' for one filein line '5'
-    """
-    files_list = []
-    file_line = file_id_line.split(',')
-    for file_id in file_line:
-        if not file_id.isdigit():
-            continue
-        file = await conn.read_data(db=db, table='files', id_name='id', id_data=int(file_id), name='*')
-        if not file:
-            continue
-
-        files_list.append(
-            create_file_json(file)
-        )
-    return JSONResponse(content={"ok": True, 'desc': "all file list by file line", 'files': files_list},
-                        headers={'content-type': 'application/json; charset=utf-8'})
-
-
-@app.post(path='/file_upload', tags=['For all'], responses=upload_files_res)
+@app.post(path='/file_upload', tags=['For all'], responses=create_file_res)
 async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0,
                       client_file_id: int = 0, db=Depends(data_b.connection), ):
     """
     Upload file to server\n
-    file_type in response: .jpg and .png is image,\n
+    file_type in response:
+    .jpg and .jpeg is image,\n
     .xlsx and .doc is ms_doc,\n
+    .mp4  is video,\n
     other files get type file\n
     msg_id: if file attached to message with msg_id
     """
@@ -89,9 +70,9 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
     elif file.filename.split('.')[1] == 'xlsx' or file.filename.split('.')[1] == 'doc':
         file_path = f'files/ms_doc/'
         file_type = 'ms_doc'
-    elif file.filename.split('.')[1] == 'txt' or file.filename.split('.')[1] == 'pdf':
-        file_path = f'files/docs/'
-        file_type = 'document'
+    # elif file.filename.split('.')[1] == 'txt' or file.filename.split('.')[1] == 'pdf':
+    #     file_path = f'files/docs/'
+    #     file_type = 'document'
     elif file.filename.split('.')[1] == 'mp4':
         file_path = f'files/video/'
         file_type = 'video'
