@@ -119,12 +119,15 @@ async def connect_to_community_by_code(access_token: str, code: str, db=Depends(
 
 @app.put(path='/community', tags=['Community'], responses=create_community_res)
 async def update_community_information(access_token: str, community_id: int, chat_name: str, com_name: str,
-                                       open_profile: bool = True, send_media: bool = True,
+                                       img_url: str, little_img_url: str, open_profile: bool = True,
+                                       send_media: bool = True,
                                        moder_create_chat: bool = True,
                                        send_voice: bool = True, db=Depends(data_b.connection)):
     """Create community in server.
     com_name: it is community name\n
     chat_name:  this is name of main chat\n
+    img_url: url for big img\n
+    little_img_url: url for big little img\n
     open_profile: can users open other users profiles\n
     send_media: can users send media\n
     moder_create_chat: Moder can create chats\n
@@ -143,7 +146,8 @@ async def update_community_information(access_token: str, community_id: int, cha
                         status_code=_status.HTTP_400_BAD_REQUEST)
 
     await conn.update_community(db=db, name=com_name, moder_create_chat=moder_create_chat, open_profile=open_profile,
-                                send_media=send_media, send_voice=send_voice, community_id=community_id)
+                                send_media=send_media, send_voice=send_voice, community_id=community_id,
+                                img_url=img_url, little_img_url=little_img_url)
 
     com_data = await conn.read_data(db=db, table='community', id_name='community_id', id_data=community_id)
     community: Community = Community.parse_obj(com_data[0])

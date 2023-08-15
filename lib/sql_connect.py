@@ -575,11 +575,12 @@ async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang
 
 
 # Обновляем данные в комюнити
-async def update_community(db: Depends, community_id: int, name: str, open_profile: bool,
-                           send_media: bool, send_voice: bool, moder_create_chat: bool):
+async def update_community(db: Depends, community_id: int, name: str, img_url: str, little_img_url: str,
+                           open_profile: bool, send_media: bool, send_voice: bool, moder_create_chat: bool):
     data = await db.fetch(f"UPDATE community SET name=$1, open_profile=$2, send_media=$3, "
-                          f"send_voice=$4, moder_create_chat=$5 WHERE community_id=$6;",
-                          name, open_profile, send_media, send_voice, moder_create_chat, community_id)
+                          f"send_voice=$4, moder_create_chat=$5, img_url=$6, little_img_url=$7 WHERE community_id=$8;",
+                          name, open_profile, send_media, send_voice, moder_create_chat, img_url, little_img_url,
+                          community_id)
     return data
 
 
