@@ -344,7 +344,6 @@ create_community_res = {
     },
 }
 
-
 create_event_res = {
     200: {
         "description": "Success",
@@ -356,22 +355,21 @@ create_event_res = {
                         "value": {
                             "ok": True,
                             "event": {
-                                "community_id": 5,
-                                "owner_id": 1,
-                                "name": "Super comunity",
-                                "main_chat_id": 8,
-                                "join_code": "3czmfs",
-                                "img_url": "0",
-                                "little_img_url": "0",
-                                "status": "create",
-                                "open_profile": True,
-                                "send_media": True,
-                                "send_voice": True,
-                                "moder_create_chat": True,
+                                "event_id": 3,
+                                "community_id": 1,
+                                "creator_id": 6,
+                                "title": "title Next",
+                                "text": "super text",
+                                "status": "created",
+                                "repeat_days": 0,
+                                "start_time": 0,
+                                "end_time": 0,
+                                "death_date": 0,
                                 "deleted_date": 0,
-                                "create_date": 1690962201
+                                "create_date": 1692300458
                             }
                         }
+
                     },
                 }
             }

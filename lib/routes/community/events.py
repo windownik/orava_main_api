@@ -69,8 +69,8 @@ async def get_event_by_id(access_token: str, event_id: int, db=Depends(data_b.co
                         status_code=_status.HTTP_401_UNAUTHORIZED)
     event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
     if not event_data:
-        return Response(content="bad event_id",
-                        status_code=_status.HTTP_400_BAD_REQUEST)
+        return JSONResponse(content={"ok": False, 'description': "bad event_id"},
+                            status_code=_status.HTTP_400_BAD_REQUEST)
     event: Event = Event.parse_obj(event_data[0])
 
     return JSONResponse(content={"ok": True,
@@ -104,7 +104,7 @@ async def update_event_information(access_token: str, community_id: int, chat_na
     user = User.parse_obj(user_data[0])
     com_data = await conn.read_data(db=db, table='community', id_name='community_id', id_data=community_id)
     if not com_data:
-        return Response(content="bad community_id",
+        return JSONResponse(content="bad community_id",
                         status_code=_status.HTTP_400_BAD_REQUEST)
 
     await conn.update_community(db=db, name=com_name, moder_create_chat=moder_create_chat, open_profile=open_profile,
@@ -138,6 +138,10 @@ async def delete_event_by_id(access_token: str, event_id: int, db=Depends(data_b
     if not event_data:
         return Response(content="bad event_id",
                         status_code=_status.HTTP_400_BAD_REQUEST)
+    if event_data[0]['creator_id'] != user_id[0][0]:
+        return JSONResponse(content={"ok": False, 'description': "not enough rights"},
+                            status_code=_status.HTTP_400_BAD_REQUEST)
+
     await conn.delete_where(db=db, table='event', id_name='event_id', data=event_id)
     return JSONResponse(content={"ok": True,
                                  "description": "Event successful deleted"},
