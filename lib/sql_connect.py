@@ -382,7 +382,7 @@ async def get_users_in_chat(db: Depends, chat_id: int, offset: int = 0, limit: i
 
 
 # получаем данные с одним фильтром
-async def get_count_users_in_chat(db: Depends, chat_id: int,):
+async def get_count_users_in_chat(db: Depends, chat_id: int, ):
     data = await db.fetch(f"SELECT COUNT(all_users.user_id) FROM users_chat "
                           f"JOIN all_users "
                           f"ON users_chat.user_id = all_users.user_id "
@@ -578,7 +578,6 @@ async def get_token(db: Depends, token_type: str, token: str):
 # Создаем новую таблицу
 async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang: str, image_link: str,
                       image_link_little: str, user_id: int, push: str = '0'):
-
     if name == '0' and surname == '0' and midl_name == '0' and lang == '0' and image_link == '0' \
             and push == '0':
         return user_id
@@ -607,14 +606,24 @@ async def update_user(db: Depends, name: str, surname: str, midl_name: str, lang
     return user_id
 
 
-# Обновляем данные в комюнити
 async def update_community(db: Depends, community_id: int, name: str, img_url: str, little_img_url: str,
                            open_profile: bool, send_media: bool, send_voice: bool, moder_create_chat: bool):
+    """Обновляем данные в комюнити"""
     data = await db.fetch(f"UPDATE community SET name=$1, open_profile=$2, send_media=$3, "
                           f"send_voice=$4, moder_create_chat=$5, img_url=$6, little_img_url=$7 WHERE community_id=$8;",
                           name, open_profile, send_media, send_voice, moder_create_chat, img_url, little_img_url,
                           community_id)
     return data
+
+
+async def update_event(db: Depends, event_id: int, title: str, text: str, repeat_days: int,
+                       event_type: str, start_time: int, end_time: int, death_date: int):
+    """Создаем новое событие"""
+    await db.fetch(f"UPDATE event SET title=$1, text=$2, event_type=$3, "
+                   f"repeat_days=$4, start_time=$5, end_time=$6, death_date=$7"
+                   f"WHERE event_id=$8;",
+                   title, text, event_type, repeat_days, start_time, end_time,
+                   death_date, event_id)
 
 
 # Обновляем информацию
