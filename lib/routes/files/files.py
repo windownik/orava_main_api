@@ -1,19 +1,16 @@
 import os
 
+import starlette.status as _status
+from PIL import Image
 from fastapi import Depends
+from fastapi import UploadFile
+from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
 
-from fastapi import UploadFile
-import starlette.status as _status
 from lib import sql_connect as conn
 from lib.response_examples import *
 from lib.routes.files.files_scripts import create_file_json
-
 from lib.sql_connect import data_b, app
-from fastapi.responses import FileResponse
-
-from PIL import Image
-# from moviepy.editor import VideoFileClip
 
 ip_server = os.environ.get("IP_SERVER")
 ip_port = os.environ.get("PORT_SERVER")
@@ -59,6 +56,7 @@ async def upload_file(file: UploadFile, access_token: str = '0', msg_id: int = 0
     other files get type file\n
     msg_id: if file attached to message with msg_id
     """
+
     user_id = (await conn.get_token(db=db, token_type='access', token=access_token))
     if not user_id:
         user_id = 0
@@ -153,6 +151,8 @@ async def save_resize_img(db: Depends, file: UploadFile, file_path: str, file_ty
 
 async def save_video_screen(db: Depends, file: UploadFile, user_id: int, file_id: int,
                             filename: str):
+    from moviepy.editor import VideoFileClip
+
     screen_file_id = (await conn.save_new_file(db=db, file_name=file.filename, file_path='files/img/', owner_id=user_id,
                                                file_type='image', file_size=0, client_file_id=0))[0][0]
     small_filename = f"{screen_file_id}.jpg"

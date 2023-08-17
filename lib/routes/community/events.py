@@ -18,7 +18,7 @@ ip_server = "127.0.0.1" if ip_server is None else ip_server
 
 @app.post(path='/event', tags=['Event'], responses=create_event_res)
 async def create_new_event(access_token: str, community_id: int, title: str, text: str, repeat_days: int = 0,
-                           death_date: bool = 0, event_type: str = 'event', start_time: int = 0, end_time: int = 0,
+                           death_date: int = 0, event_type: str = 'event', start_time: int = 0, end_time: int = 0,
                            db=Depends(data_b.connection)):
     """Create event in community.\n
     community_id: it is community id\n
