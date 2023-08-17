@@ -312,9 +312,9 @@ async def create_event(db: Depends, creator_id: int, community_id: int, title: s
                        event_type: str, start_time: int, end_time: int, death_date: int):
     """Создаем новое событие"""
     now = datetime.datetime.now()
-    data = await db.fetch(f"INSERT INTO event (community_id, creator_id, title, text, event_type"
+    data = await db.fetch(f"INSERT INTO event (community_id, creator_id, title, text, event_type, "
                           f"repeat_days, start_time, end_time, death_date, create_date) "
-                          f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) "
+                          f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
                           f"ON CONFLICT DO NOTHING RETURNING *;",
                           community_id, creator_id, title, text, event_type, repeat_days, start_time, end_time,
                           death_date, int(time.mktime(now.timetuple())))
