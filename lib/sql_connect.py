@@ -191,6 +191,26 @@ async def create_users_chats_table(db):
 
 
 # Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
+async def create_event_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS event (
+ event_id SERIAL PRIMARY KEY,
+ community_id INTEGER DEFAULT 0,
+ creator_id INTEGER DEFAULT 0,
+ status TEXT DEFAULT 'created',
+ title TEXT DEFAULT 'created',
+ text TEXT DEFAULT 'created',
+ event_type TEXT DEFAULT 'event',
+ repeat_days BIGINT DEFAULT 0,
+ start_time BIGINT DEFAULT 0,
+ end_time BIGINT DEFAULT 0,
+ death_date BIGINT DEFAULT 0,
+ deleted_date BIGINT DEFAULT 0,
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
 async def create_user(db: Depends, user: User):
     user_id = await db.fetch(f"INSERT INTO all_users (name, middle_name, surname, phone, email, image_link, "
                              f"image_link_little, description, lang, last_active, create_date) "
@@ -276,15 +296,28 @@ async def save_msg(db: Depends, msg: dict):
     return data
 
 
-# Создаем новое комюнити
 async def create_community(db: Depends, owner_id: int, name: str, main_chat_id: int, join_code: str, open_profile: bool,
                            send_media: bool, send_voice: bool, moder_create_chat: bool):
+    """Создаем новое комюнити"""
     now = datetime.datetime.now()
     data = await db.fetch(f"INSERT INTO community (owner_id, name, main_chat_id, join_code, open_profile, send_media, "
                           f"send_voice, moder_create_chat, create_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) "
                           f"ON CONFLICT DO NOTHING RETURNING *;",
                           owner_id, name, main_chat_id, join_code, open_profile, send_media, send_voice,
                           moder_create_chat, int(time.mktime(now.timetuple())))
+    return data
+
+
+async def create_event(db: Depends, creator_id: int, community_id: int, title: str, text: str, repeat_days: int,
+                       event_type: str, start_time: int, end_time: int, death_date: int):
+    """Создаем новое событие"""
+    now = datetime.datetime.now()
+    data = await db.fetch(f"INSERT INTO event (community_id, creator_id, title, text, event_type"
+                          f"repeat_days, start_time, end_time, death_date, create_date) "
+                          f"VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) "
+                          f"ON CONFLICT DO NOTHING RETURNING *;",
+                          community_id, creator_id, title, text, event_type, repeat_days, start_time, end_time,
+                          death_date, int(time.mktime(now.timetuple())))
     return data
 
 

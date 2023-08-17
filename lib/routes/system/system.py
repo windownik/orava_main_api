@@ -33,6 +33,7 @@ async def init_database(db=Depends(data_b.connection)):
     await conn.create_token_table(db)
     await conn.create_files_table(db)
     await conn.create_chats_table(db)
+    await conn.create_event_table(db)
 
     print("ok")
 

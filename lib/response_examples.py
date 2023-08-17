@@ -344,6 +344,60 @@ create_community_res = {
     },
 }
 
+
+create_event_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {
+                            "ok": True,
+                            "event": {
+                                "community_id": 5,
+                                "owner_id": 1,
+                                "name": "Super comunity",
+                                "main_chat_id": 8,
+                                "join_code": "3czmfs",
+                                "img_url": "0",
+                                "little_img_url": "0",
+                                "status": "create",
+                                "open_profile": True,
+                                "send_media": True,
+                                "send_voice": True,
+                                "moder_create_chat": True,
+                                "deleted_date": 0,
+                                "create_date": 1690962201
+                            }
+                        }
+                    },
+                }
+            }
+        }
+    },
+}
+
+delete_event_res = {
+    200: {
+        "description": "Success",
+        "content": {
+            "application/json": {
+                "examples": {
+                    "odd": {
+                        "summary": "Success",
+                        "value": {
+                            "ok": True,
+                            "description": "Event successful deleted"
+                        }
+                    },
+                }
+            }
+        }
+    },
+}
+
 create_chat_res = {
     200: {
         "description": "Success",

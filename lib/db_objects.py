@@ -160,3 +160,18 @@ class ReceiveMessage(BaseModel):
     msg_client_id: int = 0
     msg_type: str = '0'
     body: Message = None
+
+
+class Event(BaseModel):
+    event_id: int = 0
+    community_id: int = 0
+    creator_id: int = 0
+    title: str = '0'
+    text: str = '0'
+    status: str = '0'
+    repeat_days: int = 0
+    start_time: int = 0
+    end_time: int = 0
+    death_date: int = 0
+    deleted_date: int = 0
+    create_date: int = 0
