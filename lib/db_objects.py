@@ -174,5 +174,6 @@ class Event(BaseModel):
     start_time: int = 0
     end_time: int = 0
     death_date: int = 0
+    read_date: int = 0
     deleted_date: int = 0
     create_date: int = 0
