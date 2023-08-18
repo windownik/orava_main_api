@@ -168,6 +168,7 @@ class Event(BaseModel):
     creator_id: int = 0
     title: str = '0'
     text: str = '0'
+    event_type: str = 'event'
     status: str = '0'
     repeat_days: int = 0
     start_time: int = 0
