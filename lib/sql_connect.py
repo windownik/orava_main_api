@@ -353,9 +353,9 @@ async def save_user_to_chat(db: Depends, chat_id: int, user_id: int, status: str
 async def read_events(db: Depends, community_id,):
     """Получаем данные с одним фильтром"""
     now = datetime.datetime.now()
-    data = await db.fetch(f"SELECT * FROM event WHERE community_id = $1 "
-                          f"AND ((death_date > $2 AND status = 'created') "
-                          f"OR (death_date = 0 AND status = 'created'));", community_id, int(time.mktime(now.timetuple())))
+    data = await db.fetch(f"SELECT * FROM event WHERE community_id = $1 AND deleted_date = 0 "
+                          f"AND (death_date > $2 "
+                          f"OR death_date = 0);", community_id, int(time.mktime(now.timetuple())))
     return data
 
 
@@ -363,8 +363,8 @@ async def read_dead_events(db: Depends, community_id,):
     """Получаем данные с одним фильтром"""
     now = datetime.datetime.now()
     data = await db.fetch(f"SELECT * FROM event WHERE community_id = $1 "
-                          f"AND ((death_date < $2 AND status = 'created' AND death_date != 0) "
-                          f"OR (death_date = 0 AND status = 'close'));", community_id, int(time.mktime(now.timetuple())))
+                          f"AND ((death_date < $2 AND deleted_date = 0 AND death_date != 0) "
+                          f"OR (death_date = 0 AND deleted_date != 0));", community_id, int(time.mktime(now.timetuple())))
     return data
 
 
