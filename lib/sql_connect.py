@@ -350,8 +350,27 @@ async def save_user_to_chat(db: Depends, chat_id: int, user_id: int, status: str
     return data
 
 
-# получаем данные с одним фильтром
+async def read_events(db: Depends, community_id,):
+    """Получаем данные с одним фильтром"""
+    now = datetime.datetime.now()
+    data = await db.fetch(f"SELECT * FROM event WHERE community_id = $1 "
+                          f"AND ((death_date > $2 AND status = 'created') "
+                          f"OR (death_date = 0 AND status = 'created'));", community_id, int(time.mktime(now.timetuple())))
+    return data
+
+
+async def read_dead_events(db: Depends, community_id,):
+    """Получаем данные с одним фильтром"""
+    now = datetime.datetime.now()
+    data = await db.fetch(f"SELECT * FROM event WHERE community_id = $1 "
+                          f"AND ((death_date < $2 AND status = 'created' AND death_date != 0) "
+                          f"OR (death_date = 0 AND status = 'close'));", community_id, int(time.mktime(now.timetuple())))
+    return data
+
+
 async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = '*'):
+    """Получаем актуальные события"""
+    now = datetime.datetime.now()
     data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name} = $1;", id_data)
     return data
 
@@ -558,7 +577,7 @@ async def count_msg_user(db: Depends, user_id: int):
 
 
 # получаем данные с 2 фильтрами
-async def read_data_2_were(db: Depends, table: str, id_name1: str, id_name2: str, id_data1, id_data2, name: str):
+async def read_data_2_were(db: Depends, table: str, id_name1: str, id_name2: str, id_data1, id_data2, name: str = '*'):
     data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name1} = $1 AND  {id_name2} = $1;", id_data1, id_data2)
     return data
 

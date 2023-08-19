@@ -116,6 +116,39 @@ async def get_event_by_id(access_token: str, event_id: int, db=Depends(data_b.co
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
+@app.get(path='/all_events', tags=['Event'], responses=create_event_res)
+async def get_event_by_id(access_token: str, community_id: int, db=Depends(data_b.connection), ):
+    """Here you can get all_events in community\n
+    access_token: This is access auth token. You can get it when create account, login"""
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return Response(content="bad access token",
+                        status_code=_status.HTTP_401_UNAUTHORIZED)
+    com_data = await conn.read_data(db=db, table='community', id_name='community_id', id_data=community_id)
+    if not com_data:
+        return Response(content="bad community_id",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+
+    event_data = await conn.read_events(db=db, community_id=community_id)
+    event_list = []
+    for one in event_data:
+        event: Event = Event.parse_obj(one)
+        event_list.append(event.dict())
+
+    dead_event_data = await conn.read_dead_events(db=db, community_id=community_id)
+    dead_event_list = []
+    for one in dead_event_data:
+        event: Event = Event.parse_obj(one)
+        dead_event_list.append(event.dict())
+
+    return JSONResponse(content={"ok": True,
+                                 'actual_events': event_list,
+                                 'dead_events': dead_event_list,
+                                 },
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
 @app.delete(path='/event', tags=['Event'], responses=delete_event_res)
 async def delete_event_by_id(access_token: str, event_id: int, db=Depends(data_b.connection), ):
     """Here you can delete event by id\n
