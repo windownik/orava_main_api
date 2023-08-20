@@ -188,7 +188,7 @@ async def create_read_event_note(access_token: str, event_id: int, db=Depends(da
         return Response(content="bad event_id",
                         status_code=_status.HTTP_400_BAD_REQUEST)
     user_read_event = await conn.read_data_2_were(db=db, table='read_event', id_name1='event_id', id_data1=event_id,
-                                             id_name2='user_id', id_data2=user_id[0][0])
+                                                  id_name2='user_id', id_data2=user_id[0][0])
     if not user_read_event:
         await conn.create_read_event(db=db, user_id=user_id[0][0], event_id=event_id)
     read_event_count = await conn.read_event_count_were(db=db, event_id=event_id)
