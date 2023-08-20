@@ -211,6 +211,17 @@ async def create_event_table(db):
 
 
 # Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
+async def create_read_event_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS read_event (
+ id SERIAL PRIMARY KEY,
+ event_id INTEGER DEFAULT 0,
+ user_id INTEGER DEFAULT 0,
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
 async def create_user(db: Depends, user: User):
     user_id = await db.fetch(f"INSERT INTO all_users (name, middle_name, surname, phone, email, image_link, "
                              f"image_link_little, description, lang, last_active, create_date) "
@@ -318,6 +329,16 @@ async def create_event(db: Depends, creator_id: int, community_id: int, title: s
                           f"ON CONFLICT DO NOTHING RETURNING *;",
                           community_id, creator_id, title, text, event_type, repeat_days, start_time, end_time,
                           death_date, int(time.mktime(now.timetuple())))
+    return data
+
+
+async def create_read_event(db: Depends, user_id: int, event_id: int):
+    """Создаем новое событие"""
+    now = datetime.datetime.now()
+    data = await db.fetch(f"INSERT INTO read_event (event_id, user_id, create_date) "
+                          f"VALUES ($1, $2, $3) "
+                          f"ON CONFLICT DO NOTHING RETURNING *;",
+                          event_id, user_id, int(time.mktime(now.timetuple())))
     return data
 
 
@@ -520,65 +541,15 @@ async def read_all(db: Depends, table: str, order: str, name: str = '*'):
     return data
 
 
-# получаем все новые сообщения для пользователя с id
-async def read_all_msg(db: Depends, user_id: int, offset: int = 0, limit: int = 0, ):
-    offset_limit = ''
-
-    if offset != 0 or limit != 0:
-        offset_limit = f" OFFSET {offset} LIMIT {limit}"
-    data = await db.fetch(f"SELECT * FROM message_line "
-                          f"WHERE (to_id=$1 OR (to_id=0 AND user_type='admin')) "
-                          f"AND (status='created' OR status='read') ORDER BY id DESC{offset_limit};", user_id)
-    return data
-
-
-# получаем все новые сообщения для пользователя с id
-async def read_job_app_msg(db: Depends, order_id: int, ):
-    data = await db.fetch(f"SELECT * FROM message_line "
-                          f"WHERE msg_id=$1 AND msg_type='job_application' "
-                          f"AND (status='created' OR status='read') ORDER BY id DESC;", order_id)
-    return data
-
-
-# получаем все новые сообщения для пользователя с id
-async def read_all_msg_user(db: Depends, user_id: int, offset: int = 0, limit: int = 0, ):
-    offset_limit = ''
-
-    if offset != 0 or limit != 0:
-        offset_limit = f" OFFSET {offset} LIMIT {limit}"
-    data = await db.fetch(f"SELECT * FROM message_line "
-                          f"WHERE to_id=$1 "
-                          f"AND (status='created' OR status='read') ORDER BY id DESC{offset_limit};", user_id)
-    return data
-
-
-# получаем данные без фильтров
-async def count_admin_msg(db: Depends, user_id: int):
-    data = await db.fetch(f"SELECT COUNT(id) FROM message_line "
-                          f"WHERE (to_id=$1 OR (to_id=0 AND user_type='admin')) AND status='created';",
-                          user_id)
-    return data
-
-
-# получаем данные без фильтров
-async def count_users_msg(db: Depends, user_id: int):
-    data = await db.fetch(f"SELECT COUNT(id) FROM message_line "
-                          f"WHERE to_id=$1 "
-                          f"AND (status='created' OR status='read');",
-                          user_id)
-    return data
-
-
-# получаем данные без фильтров
-async def count_msg_user(db: Depends, user_id: int):
-    data = await db.fetch(f"SELECT COUNT(id) FROM message_line "
-                          f"WHERE to_id=$1 AND status='created';", user_id)
+# получаем данные с 2 фильтрами
+async def read_data_2_were(db: Depends, table: str, id_name1: str, id_name2: str, id_data1, id_data2, name: str = '*'):
+    data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name1} = $1 AND  {id_name2} = $1;", id_data1, id_data2)
     return data
 
 
 # получаем данные с 2 фильтрами
-async def read_data_2_were(db: Depends, table: str, id_name1: str, id_name2: str, id_data1, id_data2, name: str = '*'):
-    data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name1} = $1 AND  {id_name2} = $1;", id_data1, id_data2)
+async def read_event_count_were(db: Depends, event_id: int):
+    data = await db.fetch(f"SELECT COUNT(*) FROM read_event WHERE event_id = $1;", event_id)
     return data
 
 

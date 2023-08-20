@@ -25,6 +25,7 @@ async def init_database(db=Depends(data_b.connection)):
 
     await conn.create_users_chats_table(db)
     await conn.create_users_comm_table(db)
+    await conn.create_read_event_table(db)
     await conn.create_all_users_table(db)
     await conn.create_community_table(db)
     await conn.create_sms_code_table(db)

@@ -5,7 +5,7 @@ from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
-from lib.db_objects import User, Chat, Community, Event
+from lib.db_objects import User, Community, Event
 from lib.response_examples import *
 from lib.sql_connect import data_b, app
 
@@ -168,5 +168,61 @@ async def delete_event_by_id(access_token: str, event_id: int, db=Depends(data_b
     await conn.delete_where(db=db, table='event', id_name='event_id', data=event_id)
     return JSONResponse(content={"ok": True,
                                  "description": "Event successful deleted"},
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.post(path='/read_event', tags=['Event'], responses=create_event_res)
+async def create_read_event_note(access_token: str, event_id: int, db=Depends(data_b.connection)):
+    """Use it route when user open event.\n
+    event_id: it is event id\n
+    """
+
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return JSONResponse(content={"ok": False, "description": "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
+
+    event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
+    if not event_data:
+        return Response(content="bad event_id",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+
+    await conn.create_read_event(db=db, user_id=user_id[0][0], event_id=event_id)
+    read_event_count = await conn.read_event_count_were(db=db, event_id=event_id)
+    if not read_event_count:
+        read_event_count = 0
+    else:
+        read_event_count = read_event_count[0][0]
+    return JSONResponse(content={"ok": True,
+                                 'read_event_count': read_event_count,
+                                 'description': "Successful read event"},
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.get(path='/read_event', tags=['Event'], responses=create_event_res)
+async def get_read_event_count(access_token: str, event_id: int, db=Depends(data_b.connection)):
+    """Create event in community.\n
+    event_id: it is event id\n
+    """
+
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return JSONResponse(content={"ok": False, "description": "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
+
+    event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
+    if not event_data:
+        return Response(content="bad event_id",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+
+    read_event_count = await conn.read_event_count_were(db=db, event_id=event_id)
+    if not read_event_count:
+        read_event_count = 0
+    else:
+        read_event_count = read_event_count[0][0]
+    return JSONResponse(content={"ok": True,
+                                 'read_event_count': read_event_count},
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
