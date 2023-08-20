@@ -543,7 +543,7 @@ async def read_all(db: Depends, table: str, order: str, name: str = '*'):
 
 # получаем данные с 2 фильтрами
 async def read_data_2_were(db: Depends, table: str, id_name1: str, id_name2: str, id_data1, id_data2, name: str = '*'):
-    data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name1} = $1 AND  {id_name2} = $1;", id_data1, id_data2)
+    data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name1} = $1 AND  {id_name2} = $2;", id_data1, id_data2)
     return data
 
 
