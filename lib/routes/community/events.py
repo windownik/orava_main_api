@@ -293,20 +293,23 @@ async def get_question_list_in_event(access_token: str, event_id: int, db=Depend
     for one in data:
         if one['answer_id'] != 0:
             answer_list.append(one['answer_id'])
-
+    print(answer_list)
     for one in data:
         question = QAndA.parse_obj(one)
         if question.q_id in answer_list:
+            print(question.q_id, 'continue')
             continue
         _ques = question.dict()
+        print('question_id ', question.q_id)
         if question.answer_id != 0:
+            print('answer_id != 0 ', question.answer_id)
             for i in data:
+                print('i q_id',  i['q_id'])
                 if i['q_id'] == question.answer_id:
                     answer = QAndA.parse_obj(i)
                     _ques['answer'] = answer.dict()
 
         question_list.append(_ques)
-    print(1111111, question_list)
     return JSONResponse(content={"ok": True,
                                  'question_list': question_list},
                         status_code=_status.HTTP_200_OK,
