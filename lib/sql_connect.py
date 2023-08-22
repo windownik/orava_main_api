@@ -212,6 +212,19 @@ async def create_event_table(db):
 
 # Создаем новую таблицу
 # Таблица для записи всех видов сообщений для всех пользователей
+async def create_question_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS question (
+    q_id SERIAL PRIMARY KEY,
+ event_id BIGINT DEFAULT 0,
+ answer_id BIGINT DEFAULT 0,
+ creator_id BIGINT DEFAULT 0,
+ text TEXT DEFAULT '0',
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
 async def create_read_event_table(db):
     await db.execute(f'''CREATE TABLE IF NOT EXISTS read_event (
  id SERIAL PRIMARY KEY,
@@ -339,6 +352,16 @@ async def create_read_event(db: Depends, user_id: int, event_id: int):
                           f"VALUES ($1, $2, $3) "
                           f"ON CONFLICT DO NOTHING RETURNING *;",
                           event_id, user_id, int(time.mktime(now.timetuple())))
+    return data
+
+
+async def create_question_event(db: Depends, user_id: int, event_id: int, answer_id: int, text: str):
+    """Создаем новое событие"""
+    now = datetime.datetime.now()
+    data = await db.fetch(f"INSERT INTO question (event_id, answer_id, creator_id, text, create_date) "
+                          f"VALUES ($1, $2, $3, $4, $5) "
+                          f"ON CONFLICT DO NOTHING RETURNING *;",
+                          event_id, answer_id, user_id, text, int(time.mktime(now.timetuple())))
     return data
 
 

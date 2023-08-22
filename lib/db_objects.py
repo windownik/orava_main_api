@@ -177,3 +177,14 @@ class Event(BaseModel):
     read_date: int = 0
     deleted_date: int = 0
     create_date: int = 0
+
+
+class QAndA(BaseModel):
+    q_id: int = 0
+    event_id: int = 0
+    answer_id: int = 0
+    creator_id: int = 0
+    text: str = '0'
+    create_date: int = 0
+
+

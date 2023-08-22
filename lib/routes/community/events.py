@@ -5,7 +5,7 @@ from fastapi import Depends
 from starlette.responses import Response, JSONResponse
 
 from lib import sql_connect as conn
-from lib.db_objects import User, Community, Event
+from lib.db_objects import User, Community, Event, QAndA
 from lib.response_examples import *
 from lib.sql_connect import data_b, app
 
@@ -226,5 +226,78 @@ async def get_read_event_count(access_token: str, event_id: int, db=Depends(data
         read_event_count = read_event_count[0][0]
     return JSONResponse(content={"ok": True,
                                  'read_event_count': read_event_count},
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.post(path='/question', tags=['Event'], responses=create_event_res)
+async def create_question_to_event(access_token: str, text: str, event_id: int, answer_id: int = 0,
+                                   db=Depends(data_b.connection)):
+    """Use it route when user ask question to event.\n
+    text: it is text of question\n
+    event_id: it is event id\n
+    answer_id: if it's answer to question\n
+    """
+
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return JSONResponse(content={"ok": False, "description": "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
+
+    event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
+    if not event_data:
+        return Response(content="bad event_id",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+    if text == '':
+        return Response(content="text is empty",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+
+    data = await conn.create_question_event(db=db, user_id=user_id[0][0], answer_id=answer_id, event_id=event_id,
+                                            text=text)
+    question = QAndA.parse_obj(data[0])
+    res_q = question.dict()
+
+    if question.answer_id != 0:
+        answer_data = await conn.read_data(db=db, table='question', id_name='q_id', id_data=question.answer_id)
+        if answer_data:
+            answer = QAndA.parse_obj(answer_data[0])
+            res_q['answer'] = answer.dict
+
+    return JSONResponse(content={"ok": True,
+                                 'question': res_q},
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.get(path='/question', tags=['Event'], responses=create_event_res)
+async def get_question_list_in_event(access_token: str, event_id: int, db=Depends(data_b.connection)):
+    """Use it route when user ask question to event.\n
+    event_id: it is event id\n
+    """
+
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return JSONResponse(content={"ok": False, "description": "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
+
+    event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
+    if not event_data:
+        return Response(content="bad event_id",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+    data = await conn.read_data(db=db, table='question', id_name='event_id', id_data=event_id)
+    question_list = []
+    for one in data:
+        question = QAndA.parse_obj(one)
+        _ques = question.dict()
+        if question.answer_id != 0:
+            for i in data:
+                if i['q_id'] == question.answer_id:
+                    answer = QAndA.parse_obj(i)
+                    _ques['answer'] = answer.dict
+
+        question_list.append(_ques)
+
+    return JSONResponse(content={"ok": True,
+                                 'question_list': question_list},
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})

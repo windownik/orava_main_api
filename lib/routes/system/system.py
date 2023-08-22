@@ -30,6 +30,7 @@ async def init_database(db=Depends(data_b.connection)):
     await conn.create_community_table(db)
     await conn.create_sms_code_table(db)
     await conn.create_msg_line_table(db)
+    await conn.create_question_table(db)
     await conn.create_sending_table(db)
     await conn.create_token_table(db)
     await conn.create_files_table(db)
