@@ -261,7 +261,7 @@ async def create_question_to_event(access_token: str, text: str, event_id: int, 
         answer_data = await conn.read_data(db=db, table='question', id_name='q_id', id_data=question.answer_id)
         if answer_data:
             answer = QAndA.parse_obj(answer_data[0])
-            res_q['answer'] = answer.dict
+            res_q['answer'] = answer.dict()
 
     return JSONResponse(content={"ok": True,
                                  'question': res_q},
@@ -287,16 +287,19 @@ async def get_question_list_in_event(access_token: str, event_id: int, db=Depend
     data = await conn.read_data(db=db, table='question', id_name='event_id', id_data=event_id)
     question_list = []
     for one in data:
+
         question = QAndA.parse_obj(one)
+        if question.answer_id != 0:
+            continue
         _ques = question.dict()
         if question.answer_id != 0:
             for i in data:
                 if i['q_id'] == question.answer_id:
                     answer = QAndA.parse_obj(i)
-                    _ques['answer'] = answer.dict
+                    _ques['answer'] = answer.dict()
 
         question_list.append(_ques)
-    print(1111111, question_list);
+    print(1111111, question_list)
     return JSONResponse(content={"ok": True,
                                  'question_list': question_list},
                         status_code=_status.HTTP_200_OK,
