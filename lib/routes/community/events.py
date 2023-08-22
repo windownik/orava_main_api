@@ -289,9 +289,14 @@ async def get_question_list_in_event(access_token: str, event_id: int, db=Depend
                         status_code=_status.HTTP_400_BAD_REQUEST)
     data = await conn.read_data(db=db, table='question', id_name='event_id', id_data=event_id)
     question_list = []
+    answer_list = []
+    for one in data:
+        if one['answer_id'] != 0:
+            answer_list.append(one['answer_id'])
+
     for one in data:
         question = QAndA.parse_obj(one)
-        if question.answer_id != 0:
+        if question.q_id in answer_list:
             continue
         _ques = question.dict()
         if question.answer_id != 0:
