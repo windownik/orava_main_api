@@ -296,7 +296,7 @@ async def get_question_list_in_event(access_token: str, event_id: int, db=Depend
                     _ques['answer'] = answer.dict
 
         question_list.append(_ques)
-
+    print(1111111, question_list);
     return JSONResponse(content={"ok": True,
                                  'question_list': question_list},
                         status_code=_status.HTTP_200_OK,
