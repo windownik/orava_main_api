@@ -252,8 +252,11 @@ async def create_question_to_event(access_token: str, text: str, event_id: int, 
         return Response(content="text is empty",
                         status_code=_status.HTTP_400_BAD_REQUEST)
 
-    data = await conn.create_question_event(db=db, user_id=user_id[0][0], answer_id=answer_id, event_id=event_id,
+    data = await conn.create_question_event(db=db, user_id=user_id[0][0], answer_id=0, event_id=event_id,
                                             text=text)
+
+    await conn.update_data(db=db, table='question', id_name='q_id', name='answer_id', data=data[0][0],
+                           id_data=answer_id)
     question = QAndA.parse_obj(data[0])
     res_q = question.dict()
 
@@ -287,7 +290,6 @@ async def get_question_list_in_event(access_token: str, event_id: int, db=Depend
     data = await conn.read_data(db=db, table='question', id_name='event_id', id_data=event_id)
     question_list = []
     for one in data:
-
         question = QAndA.parse_obj(one)
         if question.answer_id != 0:
             continue
