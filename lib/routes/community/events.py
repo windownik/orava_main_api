@@ -287,7 +287,7 @@ async def get_question_list_in_event(access_token: str, event_id: int, db=Depend
     if not event_data:
         return Response(content="bad event_id",
                         status_code=_status.HTTP_400_BAD_REQUEST)
-    data = await conn.read_data(db=db, table='question', id_name='event_id', id_data=event_id)
+    data = await conn.read_data(db=db, table='question', id_name='event_id', id_data=event_id, order=' ORDER BY q_id')
     question_list = []
     answer_list = []
     for one in data:

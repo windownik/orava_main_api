@@ -412,10 +412,10 @@ async def read_dead_events(db: Depends, community_id,):
     return data
 
 
-async def read_data(db: Depends, table: str, id_name: str, id_data, name: str = '*'):
+async def read_data(db: Depends, table: str, id_name: str, id_data, order: str = '', name: str = '*'):
     """Получаем актуальные события"""
     now = datetime.datetime.now()
-    data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name} = $1;", id_data)
+    data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name} = $1{order};", id_data)
     return data
 
 
