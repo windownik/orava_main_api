@@ -430,12 +430,6 @@ async def get_users_by_phone_list(db: Depends, users_phones: list):
     return data
 
 
-async def read_data(db: Depends, table: str, id_name: str, id_data, order: str = '', name: str = '*'):
-    """Получаем актуальные события"""
-    data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name} = $1{order};", id_data)
-    return data
-
-
 async def read_community_users_with_lang(db: Depends, community_id: int):
     """Получаем актуальные события"""
     data = await db.fetch(f"SELECT users_community.user_id, all_users.lang FROM users_community JOIN all_users ON "
