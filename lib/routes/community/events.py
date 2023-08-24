@@ -65,7 +65,7 @@ async def create_new_event(access_token: str, community_id: int, title: str, tex
             push_title = 'New event'
             push_text = f'A new event has been created in the {community.name} community.'
         await conn.save_push_to_sending(db=db, user_id=user[0], title=push_title, short_text=push_text,
-                                        main_text=json.dumps(event.dict()),
+                                        main_text=json.dumps(event.dict(), ensure_ascii=False),
                                         push_type='new_event', msg_id=event.event_id)
 
     return JSONResponse(content={"ok": True,
