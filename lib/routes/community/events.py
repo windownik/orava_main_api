@@ -53,6 +53,20 @@ async def create_new_event(access_token: str, community_id: int, title: str, tex
                                          title=title, text=text, death_date=death_date, repeat_days=repeat_days,
                                          event_type=event_type, end_time=end_time, start_time=start_time)
     event: Event = Event.parse_obj(event_data[0])
+    # создаем пуш для всех пользователей
+
+    community_users = await conn.read_community_users_with_lang(db=db, community_id=community.community_id)
+    for user in community_users:
+        if user[1] == 'ru':
+            push_title = 'Новое событие'
+            push_text = f'В сообществе {community.name} создано новое событие'
+        else:
+            push_title = 'New event'
+            push_text = f'A new event has been created in the {community.name} community.'
+        await conn.save_push_to_sending(db=db, user_id=user[0], title=push_title, short_text=push_text,
+                                        main_text=f'{event.dict()}',
+                                        push_type='new_event', msg_id=event.event_id)
+
     return JSONResponse(content={"ok": True,
                                  'event': event.dict()},
                         status_code=_status.HTTP_200_OK,

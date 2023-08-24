@@ -414,7 +414,6 @@ async def read_dead_events(db: Depends, community_id,):
 
 async def read_data(db: Depends, table: str, id_name: str, id_data, order: str = '', name: str = '*'):
     """Получаем актуальные события"""
-    now = datetime.datetime.now()
     data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name} = $1{order};", id_data)
     return data
 
@@ -428,6 +427,20 @@ async def get_users_by_phone_list(db: Depends, users_phones: list):
     if sql_where == '':
         return []
     data = await db.fetch(f"SELECT * FROM all_users WHERE {sql_where[:-4]};")
+    return data
+
+
+async def read_data(db: Depends, table: str, id_name: str, id_data, order: str = '', name: str = '*'):
+    """Получаем актуальные события"""
+    data = await db.fetch(f"SELECT {name} FROM {table} WHERE {id_name} = $1{order};", id_data)
+    return data
+
+
+async def read_community_users_with_lang(db: Depends, community_id: int):
+    """Получаем актуальные события"""
+    data = await db.fetch(f"SELECT users_community.user_id, all_users.lang FROM users_community JOIN all_users ON "
+                          f"users_community.user_id = all_users.user_id WHERE users_community.community_id = $1 "
+                          f"ORDER BY users_community.user_id;", community_id)
     return data
 
 
