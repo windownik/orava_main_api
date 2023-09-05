@@ -324,3 +324,25 @@ async def get_question_list_in_event(access_token: str, event_id: int, db=Depend
                                  'question_list': question_list},
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.delete(path='/question', tags=['Event'], responses=create_event_res)
+async def get_question_list_in_event(access_token: str, question_id: int, db=Depends(data_b.connection)):
+    """Use it route when user ask question to event.\n
+    question_id: it is event id\n
+    """
+
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return JSONResponse(content={"ok": False, "description": "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
+
+    event_data = await conn.read_data(db=db, table='question', id_name='q_id', id_data=question_id)
+    if not event_data:
+        return Response(content="bad event_id",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+    await conn.delete_where(table='question', id_name='q_id', data=question_id, db=db)
+    return JSONResponse(content={"ok": True,
+                                 'description': 'Question was deleted successful'},
+                        status_code=_status.HTTP_200_OK)
+
