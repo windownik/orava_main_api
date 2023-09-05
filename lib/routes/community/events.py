@@ -342,6 +342,8 @@ async def get_question_list_in_event(access_token: str, question_id: int, db=Dep
         return Response(content="bad event_id",
                         status_code=_status.HTTP_400_BAD_REQUEST)
     await conn.delete_where(table='question', id_name='q_id', data=question_id, db=db)
+    if event_data[0][2] != 0:
+        await conn.delete_where(table='question', id_name='q_id', data=event_data[0][2], db=db)
     return JSONResponse(content={"ok": True,
                                  'description': 'Question was deleted successful'},
                         status_code=_status.HTTP_200_OK)
