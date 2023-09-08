@@ -55,11 +55,11 @@ async def create_new_quiz(access_token: str, community_id: int, title: str, text
     community_users = await conn.read_community_users_with_lang(db=db, community_id=community.community_id)
     for user in community_users:
         if user[1] == 'ru':
-            push_title = 'Новое событие'
-            push_text = f'В сообществе {community.name} создано новое событие'
+            push_title = 'Новый опрос'
+            push_text = f'В сообществе {community.name} создан новый опрос'
         else:
-            push_title = 'New event'
-            push_text = f'A new event has been created in the {community.name} community.'
+            push_title = 'New quiz'
+            push_text = f'A new quiz has been created in the {community.name} community.'
         await conn.save_push_to_sending(db=db, user_id=user[0], title=push_title, short_text=push_text,
                                         push_type='new_quiz', msg_id=quiz.quiz_id)
 

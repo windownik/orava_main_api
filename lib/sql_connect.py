@@ -388,7 +388,8 @@ async def create_quiz(db: Depends, creator_id: int, community_id: int, title: st
     data = await db.fetch(f"INSERT INTO quiz (community_id, creator_id, title, description, death_date, death_time, "
                           f"create_date) VALUES ($1, $2, $3, $4, $5, $6, $7) "
                           f"ON CONFLICT DO NOTHING RETURNING *;",
-                          community_id, creator_id, title, description, death_date, death_time, now)
+                          community_id, creator_id, title, description, death_date, death_time,
+                          int(time.mktime(now.timetuple())))
     return data
 
 
