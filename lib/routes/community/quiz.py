@@ -51,7 +51,12 @@ async def create_new_quiz(access_token: str, community_id: int, title: str, text
 
     for i in data:
         await conn.create_quiz_question(db=db, quiz_id=quiz.quiz_id, text=i['text'])
-
+    quiz_questions = await conn.read_data(db=db, table='quiz_question', id_name='quiz_id', id_data=quiz.quiz_id)
+    questions = []
+    for one in quiz_questions:
+        questions.append({"question_id": one[0], "text": one[2]})
+    resp = quiz.dict()
+    resp["questions"] = questions
     community_users = await conn.read_community_users_with_lang(db=db, community_id=community.community_id)
     for user in community_users:
         if user[1] == 'ru':
@@ -64,7 +69,7 @@ async def create_new_quiz(access_token: str, community_id: int, title: str, text
                                         push_type='new_quiz', msg_id=quiz.quiz_id)
 
     return JSONResponse(content={"ok": True,
-                                 'event': quiz.dict()},
+                                 'quiz': resp},
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
 
