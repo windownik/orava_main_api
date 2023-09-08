@@ -43,14 +43,14 @@ async def create_new_quiz(access_token: str, community_id: int, title: str, text
         return JSONResponse(content={"ok": False,
                                      'description': 'Not enough rights'},
                             status_code=_status.HTTP_400_BAD_REQUEST, )
-    data = json.dumps(question_list)
+    data = json.loads(question_list)
     quiz_data = await conn.create_quiz(db=db, community_id=community.community_id, creator_id=user.user_id,
                                        title=title, description=text, death_date=death_date, death_time=death_time)
     quiz: Quiz = Quiz.parse_obj(quiz_data[0])
     # создаем пуш для всех пользователей
 
     for i in data:
-        await conn.create_quiz_question(db=db, quiz_id=quiz.quiz_id, text=i)
+        await conn.create_quiz_question(db=db, quiz_id=quiz.quiz_id, text=i['text'])
 
     community_users = await conn.read_community_users_with_lang(db=db, community_id=community.community_id)
     for user in community_users:
