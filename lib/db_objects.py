@@ -179,6 +179,17 @@ class Event(BaseModel):
     create_date: int = 0
 
 
+class Quiz(BaseModel):
+    quiz_id: int = 0
+    community_id: int = 0
+    creator_id: int = 0
+    title: str = '0'
+    description: str = '0'
+    death_time: int = 0
+    death_date: int = 0
+    create_date: int = 0
+
+
 class QAndA(BaseModel):
     q_id: int = 0
     event_id: int = 0

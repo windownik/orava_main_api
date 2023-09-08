@@ -23,7 +23,9 @@ async def initialization(db):
 async def init_database(db=Depends(data_b.connection)):
     """Here you can first initialise database, And create tables"""
 
+    await conn.create_quiz_question_table(db)
     await conn.create_users_chats_table(db)
+    await conn.create_quiz_answer_table(db)
     await conn.create_users_comm_table(db)
     await conn.create_read_event_table(db)
     await conn.create_all_users_table(db)
@@ -36,6 +38,7 @@ async def init_database(db=Depends(data_b.connection)):
     await conn.create_files_table(db)
     await conn.create_chats_table(db)
     await conn.create_event_table(db)
+    await conn.create_quiz_table(db)
 
     print("ok")
 

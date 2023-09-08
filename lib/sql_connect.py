@@ -235,6 +235,42 @@ async def create_read_event_table(db):
 
 
 # Создаем новую таблицу
+# Таблица для записи всех видов сообщений для всех пользователей
+async def create_quiz_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS quiz (
+ quiz_id SERIAL PRIMARY KEY,
+ community_id INTEGER DEFAULT 0,
+ creator_id INTEGER DEFAULT 0,
+ title TEXT DEFAULT '0',
+ description TEXT DEFAULT '0',
+ death_date BIGINT DEFAULT 0,
+ death_time BIGINT DEFAULT 0,
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи всех вопросов голосования
+async def create_quiz_question_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS quiz_question (
+ q_id SERIAL PRIMARY KEY,
+ quiz_id INTEGER DEFAULT 0,
+ text TEXT DEFAULT '0'
+ )''')
+
+
+# Создаем новую таблицу
+# Таблица для записи ответов на голосование
+async def create_quiz_answer_table(db):
+    await db.execute(f'''CREATE TABLE IF NOT EXISTS quiz_answer (
+ answer_id SERIAL PRIMARY KEY,
+ quiz_id INTEGER DEFAULT 0,
+ creator_id TEXT DEFAULT '0',
+ create_date BIGINT DEFAULT 0
+ )''')
+
+
+# Создаем новую таблицу
 async def create_user(db: Depends, user: User):
     user_id = await db.fetch(f"INSERT INTO all_users (name, middle_name, surname, phone, email, image_link, "
                              f"image_link_little, description, lang, last_active, create_date) "
@@ -345,6 +381,25 @@ async def create_event(db: Depends, creator_id: int, community_id: int, title: s
     return data
 
 
+async def create_quiz(db: Depends, creator_id: int, community_id: int, title: str, description: str, death_time: int,
+                      death_date: int):
+    """Создаем новое событие"""
+    now = datetime.datetime.now()
+    data = await db.fetch(f"INSERT INTO quiz (community_id, creator_id, title, description, death_date, death_time, "
+                          f"create_date) VALUES ($1, $2, $3, $4, $5, $6, $7) "
+                          f"ON CONFLICT DO NOTHING RETURNING *;",
+                          community_id, creator_id, title, description, death_date, death_time, now)
+    return data
+
+
+async def create_quiz_question(db: Depends, quiz_id: int, text: str):
+    """Создаем новое событие"""
+    data = await db.fetch(f"INSERT INTO quiz_question (quiz_id, text) VALUES ($1, $2) "
+                          f"ON CONFLICT DO NOTHING RETURNING *;",
+                          quiz_id, text)
+    return data
+
+
 async def create_read_event(db: Depends, user_id: int, event_id: int):
     """Создаем новое событие"""
     now = datetime.datetime.now()
@@ -394,7 +449,7 @@ async def save_user_to_chat(db: Depends, chat_id: int, user_id: int, status: str
     return data
 
 
-async def read_events(db: Depends, community_id,):
+async def read_events(db: Depends, community_id, ):
     """Получаем данные с одним фильтром"""
     now = datetime.datetime.now()
     data = await db.fetch(f"SELECT * FROM event WHERE community_id = $1 AND deleted_date = 0 "
@@ -403,12 +458,13 @@ async def read_events(db: Depends, community_id,):
     return data
 
 
-async def read_dead_events(db: Depends, community_id,):
+async def read_dead_events(db: Depends, community_id, ):
     """Получаем данные с одним фильтром"""
     now = datetime.datetime.now()
     data = await db.fetch(f"SELECT * FROM event WHERE community_id = $1 "
                           f"AND ((death_date < $2 AND deleted_date = 0 AND death_date != 0) "
-                          f"OR (death_date = 0 AND deleted_date != 0));", community_id, int(time.mktime(now.timetuple())))
+                          f"OR (death_date = 0 AND deleted_date != 0));", community_id,
+                          int(time.mktime(now.timetuple())))
     return data
 
 
