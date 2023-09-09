@@ -187,6 +187,7 @@ class Quiz(BaseModel):
     description: str = '0'
     death_time: int = 0
     death_date: int = 0
+    deleted_date: int = 0
     create_date: int = 0
 
 

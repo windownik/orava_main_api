@@ -245,6 +245,7 @@ async def create_quiz_table(db):
  description TEXT DEFAULT '0',
  death_date BIGINT DEFAULT 0,
  death_time BIGINT DEFAULT 0,
+ deleted_date BIGINT DEFAULT 0,
  create_date BIGINT DEFAULT 0
  )''')
 
@@ -463,6 +464,24 @@ async def read_dead_events(db: Depends, community_id, ):
     """Получаем данные с одним фильтром"""
     now = datetime.datetime.now()
     data = await db.fetch(f"SELECT * FROM event WHERE community_id = $1 "
+                          f"AND ((death_date < $2 AND deleted_date = 0 AND death_date != 0) "
+                          f"OR (death_date = 0 AND deleted_date != 0));", community_id,
+                          int(time.mktime(now.timetuple())))
+    return data
+
+
+async def read_quiz(db: Depends, community_id, ):
+    """Получаем данные с одним фильтром"""
+    now = datetime.datetime.now()
+    data = await db.fetch(f"SELECT * FROM quiz WHERE community_id = $1 AND deleted_date = 0 AND "
+                          f"(death_date > $2 OR death_date = 0);", community_id, int(time.mktime(now.timetuple())))
+    return data
+
+
+async def read_dead_quiz(db: Depends, community_id, ):
+    """Получаем данные с одним фильтром"""
+    now = datetime.datetime.now()
+    data = await db.fetch(f"SELECT * FROM quiz WHERE community_id = $1 "
                           f"AND ((death_date < $2 AND deleted_date = 0 AND death_date != 0) "
                           f"OR (death_date = 0 AND deleted_date != 0));", community_id,
                           int(time.mktime(now.timetuple())))

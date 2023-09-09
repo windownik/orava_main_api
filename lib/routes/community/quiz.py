@@ -51,12 +51,9 @@ async def create_new_quiz(access_token: str, community_id: int, title: str, text
 
     for i in data:
         await conn.create_quiz_question(db=db, quiz_id=quiz.quiz_id, text=i['text'])
-    quiz_questions = await conn.read_data(db=db, table='quiz_question', id_name='quiz_id', id_data=quiz.quiz_id)
-    questions = []
-    for one in quiz_questions:
-        questions.append({"question_id": one[0], "text": one[2]})
-    resp = quiz.dict()
-    resp["questions"] = questions
+
+    resp = await build_quiz_json(db=db, quiz_data=quiz_data)
+
     community_users = await conn.read_community_users_with_lang(db=db, community_id=community.community_id)
     for user in community_users:
         if user[1] == 'ru':
@@ -108,59 +105,59 @@ async def create_new_quiz(access_token: str, community_id: int, title: str, text
 #                                  'event': event.dict()},
 #                         status_code=_status.HTTP_200_OK,
 #                         headers={'content-type': 'application/json; charset=utf-8'})
-#
-#
-# @app.get(path='/event', tags=['Event'], responses=create_event_res)
-# async def get_event_by_id(access_token: str, event_id: int, db=Depends(data_b.connection), ):
-#     """Here you can get community by id\n
-#     access_token: This is access auth token. You can get it when create account, login"""
-#     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
-#     if not user_id:
-#         return Response(content="bad access token",
-#                         status_code=_status.HTTP_401_UNAUTHORIZED)
-#     event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
-#     if not event_data:
-#         return JSONResponse(content={"ok": False, 'description': "bad event_id"},
-#                             status_code=_status.HTTP_400_BAD_REQUEST)
-#     event: Event = Event.parse_obj(event_data[0])
-#
-#     return JSONResponse(content={"ok": True,
-#                                  'event': event.dict()},
-#                         status_code=_status.HTTP_200_OK,
-#                         headers={'content-type': 'application/json; charset=utf-8'})
-#
-#
-# @app.get(path='/all_events', tags=['Event'], responses=create_event_res)
-# async def get_event_by_id(access_token: str, community_id: int, db=Depends(data_b.connection), ):
-#     """Here you can get all_events in community\n
-#     access_token: This is access auth token. You can get it when create account, login"""
-#     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
-#     if not user_id:
-#         return Response(content="bad access token",
-#                         status_code=_status.HTTP_401_UNAUTHORIZED)
-#     com_data = await conn.read_data(db=db, table='community', id_name='community_id', id_data=community_id)
-#     if not com_data:
-#         return Response(content="bad community_id",
-#                         status_code=_status.HTTP_400_BAD_REQUEST)
-#
-#     event_data = await conn.read_events(db=db, community_id=community_id)
-#     event_list = []
-#     for one in event_data:
-#         event: Event = Event.parse_obj(one)
-#         event_list.append(event.dict())
-#
-#     dead_event_data = await conn.read_dead_events(db=db, community_id=community_id)
-#     dead_event_list = []
-#     for one in dead_event_data:
-#         event: Event = Event.parse_obj(one)
-#         dead_event_list.append(event.dict())
-#
-#     return JSONResponse(content={"ok": True,
-#                                  'actual_events': event_list,
-#                                  'dead_events': dead_event_list,
-#                                  },
-#                         status_code=_status.HTTP_200_OK,
-#                         headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.get(path='/quiz', tags=['Quiz'], responses=create_event_res)
+async def get_quiz_by_id(access_token: str, quiz_id: int, db=Depends(data_b.connection), ):
+    """Here you can get community by id\n
+    access_token: This is access auth token. You can get it when create account, login"""
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return Response(content="bad access token",
+                        status_code=_status.HTTP_401_UNAUTHORIZED)
+    quiz_data = await conn.read_data(db=db, table='quiz', id_name='quiz_id', id_data=quiz_id)
+    if not quiz_data:
+        return JSONResponse(content={"ok": False, 'description': "bad quiz_id"},
+                            status_code=_status.HTTP_400_BAD_REQUEST)
+    resp = await build_quiz_json(db=db, quiz_data=quiz_data)
+
+    return JSONResponse(content={"ok": True,
+                                 'quiz': resp},
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
+@app.get(path='/all_quiz', tags=['Event'], responses=create_event_res)
+async def get_event_by_id(access_token: str, community_id: int, db=Depends(data_b.connection), ):
+    """Here you can get all_events in community\n
+    access_token: This is access auth token. You can get it when create account, login"""
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return Response(content="bad access token",
+                        status_code=_status.HTTP_401_UNAUTHORIZED)
+    com_data = await conn.read_data(db=db, table='community', id_name='community_id', id_data=community_id)
+    if not com_data:
+        return Response(content="bad community_id",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+
+    quiz_data = await conn.read_quiz(db=db, community_id=community_id)
+    quiz_list = []
+    for one in quiz_data:
+        resp = await build_quiz_json(db=db, quiz_data=one)
+        quiz_list.append(resp)
+
+    dead_quiz_data = await conn.read_dead_quiz(db=db, community_id=community_id)
+    dead_quiz_list = []
+    for one in dead_quiz_data:
+        resp = await build_quiz_json(db=db, quiz_data=one)
+        dead_quiz_list.append(resp)
+
+    return JSONResponse(content={"ok": True,
+                                 'actual_quiz': quiz_list,
+                                 'dead_quiz': dead_quiz_list,
+                                 },
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
 #
 #
 # @app.delete(path='/event', tags=['Event'], responses=delete_event_res)
@@ -346,3 +343,22 @@ async def create_new_quiz(access_token: str, community_id: int, title: str, text
 #     return JSONResponse(content={"ok": True,
 #                                  'description': 'Question was deleted successful'},
 #                         status_code=_status.HTTP_200_OK)
+
+
+async def build_quiz_json(db: Depends, quiz_data: tuple) -> json:
+    quiz: Quiz = Quiz.parse_obj(quiz_data[0])
+    quiz_questions = await conn.read_data(db=db, table='quiz_question', id_name='quiz_id', id_data=quiz.quiz_id)
+    # Add questions list
+    questions = []
+    for one in quiz_questions:
+        questions.append({"question_id": one[0], "text": one[2]})
+    resp = quiz.dict()
+    resp["questions"] = questions
+
+    # Add questions list
+    quiz_answer = await conn.read_data(db=db, table='quiz_answer', id_name='quiz_id', id_data=quiz.quiz_id)
+    answers = []
+    for one in quiz_answer:
+        answers.append(one[2])
+    resp["answers"] = answers
+    return resp
