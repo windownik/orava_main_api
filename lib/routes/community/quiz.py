@@ -63,6 +63,7 @@ async def create_new_quiz(access_token: str, community_id: int, title: str, text
             push_title = 'New quiz'
             push_text = f'A new quiz has been created in the {community.name} community.'
         await conn.save_push_to_sending(db=db, user_id=user[0], title=push_title, short_text=push_text,
+                                        main_text=json.dumps(resp),
                                         push_type='new_quiz', msg_id=quiz.quiz_id)
 
     return JSONResponse(content={"ok": True,
