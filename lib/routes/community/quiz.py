@@ -347,7 +347,7 @@ async def get_event_by_id(access_token: str, community_id: int, db=Depends(data_
 
 
 async def build_quiz_json(db: Depends, quiz_data: tuple) -> json:
-    quiz: Quiz = Quiz.parse_obj(quiz_data[0])
+    quiz: Quiz = Quiz.parse_obj(quiz_data)
     quiz_questions = await conn.read_data(db=db, table='quiz_question', id_name='quiz_id', id_data=quiz.quiz_id)
     # Add questions list
     questions = []
