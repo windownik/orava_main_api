@@ -128,7 +128,7 @@ async def get_quiz_by_id(access_token: str, quiz_id: int, db=Depends(data_b.conn
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
-@app.get(path='/all_quiz', tags=['Event'], responses=create_event_res)
+@app.get(path='/all_quiz', tags=['Quiz'], responses=create_event_res)
 async def get_event_by_id(access_token: str, community_id: int, db=Depends(data_b.connection), ):
     """Here you can get all_events in community\n
     access_token: This is access auth token. You can get it when create account, login"""
