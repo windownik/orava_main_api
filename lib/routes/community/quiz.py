@@ -52,7 +52,7 @@ async def create_new_quiz(access_token: str, community_id: int, title: str, text
     for i in data:
         await conn.create_quiz_question(db=db, quiz_id=quiz.quiz_id, text=i['text'])
 
-    resp = await build_quiz_json(db=db, quiz_data=quiz_data)
+    resp = await build_quiz_json(db=db, quiz_data=quiz_data[0])
 
     community_users = await conn.read_community_users_with_lang(db=db, community_id=community.community_id)
     for user in community_users:
