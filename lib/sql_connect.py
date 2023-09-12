@@ -402,6 +402,16 @@ async def create_quiz_question(db: Depends, quiz_id: int, text: str):
     return data
 
 
+async def user_vote_in_quiz(db: Depends, quiz_id: int, answer_id: int, user_id: int):
+    """Создаем новое событие"""
+    now = datetime.datetime.now()
+    data = await db.fetch(f"INSERT INTO quiz_answer (answer_id, quiz_id, creator_id, create_date) "
+                          f"VALUES ($1, $2, $3, $4) "
+                          f"ON CONFLICT DO NOTHING RETURNING *;",
+                          answer_id, quiz_id, user_id, int(time.mktime(now.timetuple())))
+    return data
+
+
 async def create_read_event(db: Depends, user_id: int, event_id: int):
     """Создаем новое событие"""
     now = datetime.datetime.now()

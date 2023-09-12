@@ -182,168 +182,31 @@ async def get_event_by_id(access_token: str, community_id: int, db=Depends(data_
 #                                  "description": "Event successful deleted"},
 #                         status_code=_status.HTTP_200_OK,
 #                         headers={'content-type': 'application/json; charset=utf-8'})
-#
-#
-# @app.post(path='/read_event', tags=['Event'], responses=create_event_res)
-# async def create_read_event_note(access_token: str, event_id: int, db=Depends(data_b.connection)):
-#     """Use it route when user open event.\n
-#     event_id: it is event id\n
-#     """
-#
-#     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
-#     if not user_id:
-#         return JSONResponse(content={"ok": False, "description": "bad access token"},
-#                             status_code=_status.HTTP_401_UNAUTHORIZED)
-#
-#     event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
-#     if not event_data:
-#         return Response(content="bad event_id",
-#                         status_code=_status.HTTP_400_BAD_REQUEST)
-#     user_read_event = await conn.read_data_2_were(db=db, table='read_event', id_name1='event_id', id_data1=event_id,
-#                                                   id_name2='user_id', id_data2=user_id[0][0])
-#     if not user_read_event:
-#         await conn.create_read_event(db=db, user_id=user_id[0][0], event_id=event_id)
-#     read_event_count = await conn.read_event_count_were(db=db, event_id=event_id)
-#     if not read_event_count:
-#         read_event_count = 0
-#     else:
-#         read_event_count = read_event_count[0][0]
-#     return JSONResponse(content={"ok": True,
-#                                  'read_event_count': read_event_count,
-#                                  'description': "Successful read event"},
-#                         status_code=_status.HTTP_200_OK,
-#                         headers={'content-type': 'application/json; charset=utf-8'})
-#
-#
-# @app.get(path='/read_event', tags=['Event'], responses=create_event_res)
-# async def get_read_event_count(access_token: str, event_id: int, db=Depends(data_b.connection)):
-#     """Create event in community.\n
-#     event_id: it is event id\n
-#     """
-#
-#     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
-#     if not user_id:
-#         return JSONResponse(content={"ok": False, "description": "bad access token"},
-#                             status_code=_status.HTTP_401_UNAUTHORIZED)
-#
-#     event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
-#     if not event_data:
-#         return Response(content="bad event_id",
-#                         status_code=_status.HTTP_400_BAD_REQUEST)
-#
-#     read_event_count = await conn.read_event_count_were(db=db, event_id=event_id)
-#     if not read_event_count:
-#         read_event_count = 0
-#     else:
-#         read_event_count = read_event_count[0][0]
-#     return JSONResponse(content={"ok": True,
-#                                  'read_event_count': read_event_count},
-#                         status_code=_status.HTTP_200_OK,
-#                         headers={'content-type': 'application/json; charset=utf-8'})
-#
-#
-# @app.post(path='/question', tags=['Event'], responses=create_event_res)
-# async def create_question_to_event(access_token: str, text: str, event_id: int, answer_id: int = 0,
-#                                    db=Depends(data_b.connection)):
-#     """Use it route when user ask question to event.\n
-#     text: it is text of question\n
-#     event_id: it is event id\n
-#     answer_id: if it's answer to question\n
-#     """
-#
-#     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
-#     if not user_id:
-#         return JSONResponse(content={"ok": False, "description": "bad access token"},
-#                             status_code=_status.HTTP_401_UNAUTHORIZED)
-#
-#     event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
-#     if not event_data:
-#         return Response(content="bad event_id",
-#                         status_code=_status.HTTP_400_BAD_REQUEST)
-#     if text == '':
-#         return Response(content="text is empty",
-#                         status_code=_status.HTTP_400_BAD_REQUEST)
-#
-#     data = await conn.create_question_event(db=db, user_id=user_id[0][0], answer_id=0, event_id=event_id,
-#                                             text=text)
-#
-#     await conn.update_data(db=db, table='question', id_name='q_id', name='answer_id', data=data[0][0],
-#                            id_data=answer_id)
-#     question = QAndA.parse_obj(data[0])
-#     res_q = question.dict()
-#
-#     if question.answer_id != 0:
-#         answer_data = await conn.read_data(db=db, table='question', id_name='q_id', id_data=question.answer_id)
-#         if answer_data:
-#             answer = QAndA.parse_obj(answer_data[0])
-#             res_q['answer'] = answer.dict()
-#
-#     return JSONResponse(content={"ok": True,
-#                                  'question': res_q},
-#                         status_code=_status.HTTP_200_OK,
-#                         headers={'content-type': 'application/json; charset=utf-8'})
-#
-#
-# @app.get(path='/question', tags=['Event'], responses=create_event_res)
-# async def get_question_list_in_event(access_token: str, event_id: int, db=Depends(data_b.connection)):
-#     """Use it route when user ask question to event.\n
-#     event_id: it is event id\n
-#     """
-#
-#     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
-#     if not user_id:
-#         return JSONResponse(content={"ok": False, "description": "bad access token"},
-#                             status_code=_status.HTTP_401_UNAUTHORIZED)
-#
-#     event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
-#     if not event_data:
-#         return Response(content="bad event_id",
-#                         status_code=_status.HTTP_400_BAD_REQUEST)
-#     data = await conn.read_data(db=db, table='question', id_name='event_id', id_data=event_id, order=' ORDER BY q_id')
-#     question_list = []
-#     answer_list = []
-#     for one in data:
-#         if one['answer_id'] != 0:
-#             answer_list.append(one['answer_id'])
-#     for one in data:
-#         question = QAndA.parse_obj(one)
-#         if question.q_id in answer_list:
-#             continue
-#         _ques = question.dict()
-#         if question.answer_id != 0:
-#             for i in data:
-#                 if i['q_id'] == question.answer_id:
-#                     answer = QAndA.parse_obj(i)
-#                     _ques['answer'] = answer.dict()
-#
-#         question_list.append(_ques)
-#     return JSONResponse(content={"ok": True,
-#                                  'question_list': question_list},
-#                         status_code=_status.HTTP_200_OK,
-#                         headers={'content-type': 'application/json; charset=utf-8'})
-#
-#
-# @app.delete(path='/question', tags=['Event'], responses=create_event_res)
-# async def get_question_list_in_event(access_token: str, question_id: int, db=Depends(data_b.connection)):
-#     """Use it route when user ask question to event.\n
-#     question_id: it is event id\n
-#     """
-#
-#     user_id = await conn.get_token(db=db, token_type='access', token=access_token)
-#     if not user_id:
-#         return JSONResponse(content={"ok": False, "description": "bad access token"},
-#                             status_code=_status.HTTP_401_UNAUTHORIZED)
-#
-#     event_data = await conn.read_data(db=db, table='question', id_name='q_id', id_data=question_id)
-#     if not event_data:
-#         return Response(content="bad event_id",
-#                         status_code=_status.HTTP_400_BAD_REQUEST)
-#     await conn.delete_where(table='question', id_name='q_id', data=question_id, db=db)
-#     if event_data[0][2] != 0:
-#         await conn.delete_where(table='question', id_name='q_id', data=event_data[0][2], db=db)
-#     return JSONResponse(content={"ok": True,
-#                                  'description': 'Question was deleted successful'},
-#                         status_code=_status.HTTP_200_OK)
+
+
+@app.post(path='/quiz_answer', tags=['Quiz'], responses=create_event_res)
+async def create_new_quiz(access_token: str, quiz_id: int, answer_id: int, db=Depends(data_b.connection)):
+    """Create event in community.\n
+    quiz_id: it is quiz id\n
+    answer_id: it is answer id\n
+    """
+
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return JSONResponse(content={"ok": False, "description": "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
+
+    quiz_data = await conn.read_data(db=db, table='quiz', id_name='quiz_id', id_data=quiz_id)
+    if not quiz_data:
+        return Response(content="bad quiz_id",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+
+    await conn.user_vote_in_quiz(db=db, quiz_id=quiz_id, answer_id=answer_id, user_id=user_id[0][0])
+
+    return JSONResponse(content={"ok": True,
+                                 'description': 'user vote successful'},
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
 
 
 async def build_quiz_json(db: Depends, quiz_data: tuple) -> json:
@@ -360,6 +223,6 @@ async def build_quiz_json(db: Depends, quiz_data: tuple) -> json:
     quiz_answer = await conn.read_data(db=db, table='quiz_answer', id_name='quiz_id', id_data=quiz.quiz_id)
     answers = []
     for one in quiz_answer:
-        answers.append(one[2])
+        answers.append({"user_id": one[2], "quiz_id": one[1]})
     resp["answers"] = answers
     return resp
