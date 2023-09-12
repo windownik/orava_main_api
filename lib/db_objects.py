@@ -143,6 +143,7 @@ class Community(BaseModel):
     owner_id: int = 0
     name: str = '0'
     main_chat_id: int = 0
+    total_users_count: int = 0
     join_code: str = '0'
     img_url: str = '0'
     little_img_url: str = '0'

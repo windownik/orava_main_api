@@ -159,8 +159,8 @@ async def get_event_by_id(access_token: str, community_id: int, db=Depends(data_
                                  },
                         status_code=_status.HTTP_200_OK,
                         headers={'content-type': 'application/json; charset=utf-8'})
-#
-#
+
+
 # @app.delete(path='/event', tags=['Event'], responses=delete_event_res)
 # async def delete_event_by_id(access_token: str, event_id: int, db=Depends(data_b.connection), ):
 #     """Here you can delete event by id\n

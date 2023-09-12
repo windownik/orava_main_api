@@ -51,6 +51,8 @@ async def create_new_community(access_token: str, com_name: str, chat_name: str,
     await conn.save_user_to_chat(db=db, chat_id=chat.chat_id, user_id=user.user_id)
     await conn.save_user_to_comm(db=db, com_id=community.community_id, user_id=user.user_id, status='owner')
 
+    community.total_users_count = chat.all_users_count
+
     return JSONResponse(content={"ok": True,
                                  'main_chat': await chat.to_json(db=db, reqwest_user=user),
                                  'community': community.dict()},
@@ -77,6 +79,7 @@ async def get_community_by_id(access_token: str, community_id: int, db=Depends(d
     chat_data = await conn.read_data(db=db, table='all_chats', id_name='chat_id', id_data=community.main_chat_id)
     chat: Chat = Chat.parse_obj(chat_data[0])
 
+    community.total_users_count = chat.all_users_count
     res = {"ok": True,
            'main_chat': await chat.to_json(db=db, reqwest_user=user),
            'community': community.dict()
@@ -107,7 +110,7 @@ async def connect_to_community_by_code(access_token: str, code: str, db=Depends(
     chat: Chat = Chat.parse_obj(chat_data[0])
     await conn.save_user_to_chat(db=db, chat_id=chat.chat_id, user_id=user.user_id)
     await conn.save_user_to_comm(db=db, com_id=community.community_id, user_id=user.user_id, status='owner')
-
+    community.total_users_count = chat.all_users_count
     res = {"ok": True,
            'main_chat': await chat.to_json(db=db, reqwest_user=user),
            'community': community.dict()
@@ -157,6 +160,7 @@ async def update_community_information(access_token: str, community_id: int, cha
 
     chat_data = await conn.read_data(db=db, table='all_chats', id_name='chat_id', id_data=community.main_chat_id)
     chat: Chat = Chat.parse_obj(chat_data[0])
+    community.total_users_count = chat.all_users_count
 
     return JSONResponse(content={"ok": True,
                                  'main_chat': await chat.to_json(db=db, reqwest_user=user),

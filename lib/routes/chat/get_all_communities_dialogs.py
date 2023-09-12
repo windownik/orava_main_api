@@ -34,6 +34,7 @@ async def get_all_communities_chats(access_token: str, db=Depends(data_b.connect
 
     chats_data = await conn.get_users_chats(user_id=owner_id[0][0], db=db)
     list_chats = []
+
     for chat_data in chats_data:
         chat = Chat.parse_obj(chat_data)
 
@@ -43,6 +44,9 @@ async def get_all_communities_chats(access_token: str, db=Depends(data_b.connect
     comm_data = await conn.get_users_community(user_id=owner_id[0][0], db=db)
     for _comm in comm_data:
         comm = Community.parse_obj(_comm)
+        for one in list_chats:
+            if one['chat_id'] == comm.main_chat_id:
+                comm.total_users_count = one['all_users_count']
         community_list.append(comm.dict())
 
     return JSONResponse(status_code=_status.HTTP_200_OK,
