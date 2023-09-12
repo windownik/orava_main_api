@@ -19,6 +19,8 @@ RUN pip3 install pillow
 RUN pip3 install websockets
 RUN pip3 install python-socketio
 RUN pip3 install moviepy
+RUN pip3 uninstall -y pydantic
+RUN pip3 install pydantic==1.10.11
 
 
 WORKDIR /main/
