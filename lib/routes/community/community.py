@@ -80,8 +80,11 @@ async def get_community_by_id(access_token: str, community_id: int, db=Depends(d
     chat: Chat = Chat.parse_obj(chat_data[0])
 
     community.total_users_count = chat.all_users_count
+    chat_resp = await chat.to_json(db=db, reqwest_user=user)
+    community.total_users_count = chat_resp["all_users_count"]
+
     res = {"ok": True,
-           'main_chat': await chat.to_json(db=db, reqwest_user=user),
+           'main_chat': chat_resp,
            'community': community.dict()
            }
     return JSONResponse(content=res,
@@ -110,9 +113,12 @@ async def connect_to_community_by_code(access_token: str, code: str, db=Depends(
     chat: Chat = Chat.parse_obj(chat_data[0])
     await conn.save_user_to_chat(db=db, chat_id=chat.chat_id, user_id=user.user_id)
     await conn.save_user_to_comm(db=db, com_id=community.community_id, user_id=user.user_id, status='owner')
-    community.total_users_count = chat.all_users_count
+
+    chat_resp = await chat.to_json(db=db, reqwest_user=user)
+    community.total_users_count = chat_resp["all_users_count"]
+
     res = {"ok": True,
-           'main_chat': await chat.to_json(db=db, reqwest_user=user),
+           'main_chat': chat_resp,
            'community': community.dict()
            }
     return JSONResponse(content=res,
@@ -160,10 +166,11 @@ async def update_community_information(access_token: str, community_id: int, cha
 
     chat_data = await conn.read_data(db=db, table='all_chats', id_name='chat_id', id_data=community.main_chat_id)
     chat: Chat = Chat.parse_obj(chat_data[0])
-    community.total_users_count = chat.all_users_count
 
+    chat_resp = await chat.to_json(db=db, reqwest_user=user)
+    community.total_users_count = chat_resp["all_users_count"]
     return JSONResponse(content={"ok": True,
-                                 'main_chat': await chat.to_json(db=db, reqwest_user=user),
+                                 'main_chat': chat_resp,
                                  'community': community.dict()},
                         status_code=_status.HTTP_200_OK,
 
