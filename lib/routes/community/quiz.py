@@ -226,6 +226,11 @@ async def build_quiz_json(db: Depends, quiz_data: tuple) -> json:
     quiz_answer = await conn.read_data(db=db, table='quiz_answer', id_name='quiz_id', id_data=quiz.quiz_id)
     answers = []
     for one in quiz_answer:
-        answers.append({"user_id": one[2], "quiz_id": one[1]})
+        answers.append({"answer_id": one['answer_id'],
+                        "question_id": one['q_id'],
+                        "user_id": one['creator_id'],
+                        "quiz_id": one['quiz_id'],
+                        "create_date": one['create_date'],
+                        })
     resp["answers"] = answers
     return resp
