@@ -266,7 +266,7 @@ async def create_quiz_answer_table(db):
     await db.execute(f'''CREATE TABLE IF NOT EXISTS quiz_answer (
  answer_id SERIAL PRIMARY KEY,
  quiz_id INTEGER DEFAULT 0,
- creator_id TEXT DEFAULT '0',
+ creator_id BIGINT DEFAULT '0',
  create_date BIGINT DEFAULT 0
  )''')
 
