@@ -265,6 +265,7 @@ async def create_quiz_question_table(db):
 async def create_quiz_answer_table(db):
     await db.execute(f'''CREATE TABLE IF NOT EXISTS quiz_answer (
  answer_id SERIAL PRIMARY KEY,
+ q_id INTEGER DEFAULT 0,
  quiz_id INTEGER DEFAULT 0,
  creator_id BIGINT DEFAULT '0',
  create_date BIGINT DEFAULT 0
@@ -402,13 +403,13 @@ async def create_quiz_question(db: Depends, quiz_id: int, text: str):
     return data
 
 
-async def user_vote_in_quiz(db: Depends, quiz_id: int, answer_id: int, user_id: int):
+async def user_vote_in_quiz(db: Depends, quiz_id: int, question_id: int, user_id: int):
     """Создаем новое событие"""
     now = datetime.datetime.now()
-    data = await db.fetch(f"INSERT INTO quiz_answer (answer_id, quiz_id, creator_id, create_date) "
+    data = await db.fetch(f"INSERT INTO quiz_answer (q_id, quiz_id, creator_id, create_date) "
                           f"VALUES ($1, $2, $3, $4) "
                           f"ON CONFLICT DO NOTHING RETURNING *;",
-                          answer_id, quiz_id, user_id, int(time.mktime(now.timetuple())))
+                          question_id, quiz_id, user_id, int(time.mktime(now.timetuple())))
     return data
 
 

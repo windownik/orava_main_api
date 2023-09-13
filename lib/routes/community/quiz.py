@@ -185,7 +185,7 @@ async def get_event_by_id(access_token: str, community_id: int, db=Depends(data_
 
 
 @app.post(path='/quiz_answer', tags=['Quiz'], responses=create_event_res)
-async def create_new_quiz(access_token: str, quiz_id: int, answer_id: int, db=Depends(data_b.connection)):
+async def create_new_quiz(access_token: str, quiz_id: int, question_id: int, db=Depends(data_b.connection)):
     """Create quiz_answer in quiz.\n
     quiz_id: it is quiz id\n
     answer_id: it is answer id\n
@@ -201,7 +201,7 @@ async def create_new_quiz(access_token: str, quiz_id: int, answer_id: int, db=De
         return Response(content="bad quiz_id",
                         status_code=_status.HTTP_400_BAD_REQUEST)
 
-    await conn.user_vote_in_quiz(db=db, quiz_id=quiz_id, answer_id=answer_id, user_id=user_id[0][0])
+    await conn.user_vote_in_quiz(db=db, quiz_id=quiz_id, question_id=question_id, user_id=user_id[0][0])
 
     resp = await build_quiz_json(db=db, quiz_data=quiz_data[0])
 
