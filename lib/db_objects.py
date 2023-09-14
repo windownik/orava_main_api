@@ -167,6 +167,9 @@ class Event(BaseModel):
     event_id: int = 0
     community_id: int = 0
     creator_id: int = 0
+    creator_name: str = '0'
+    creator_surname: str = '0'
+    creator_middlename: str = '0'
     title: str = '0'
     text: str = '0'
     event_type: str = 'event'

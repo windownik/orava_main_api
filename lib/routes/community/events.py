@@ -54,6 +54,11 @@ async def create_new_event(access_token: str, community_id: int, title: str, tex
                                          title=title, text=text, death_date=death_date, repeat_days=repeat_days,
                                          event_type=event_type, end_time=end_time, start_time=start_time)
     event: Event = Event.parse_obj(event_data[0])
+    user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=event.creator_id, db=db,
+                                     name='name, middle_name, surname')
+    event.creator_name = user_data[0][0]
+    event.creator_middlename = user_data[0][1]
+    event.creator_surname = user_data[0][2]
     # создаем пуш для всех пользователей
 
     community_users = await conn.read_community_users_with_lang(db=db, community_id=community.community_id)
@@ -105,6 +110,12 @@ async def update_event(access_token: str, event_id: int, title: str, text: str, 
 
     event_data = await conn.read_data(db=db, table='event', id_name='event_id', id_data=event_id)
     event: Event = Event.parse_obj(event_data[0])
+    user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=event.creator_id, db=db,
+                                     name='name, middle_name, surname')
+    event.creator_name = user_data[0][0]
+    event.creator_middlename = user_data[0][1]
+    event.creator_surname = user_data[0][2]
+
     return JSONResponse(content={"ok": True,
                                  'event': event.dict()},
                         status_code=_status.HTTP_200_OK,
@@ -124,6 +135,11 @@ async def get_event_by_id(access_token: str, event_id: int, db=Depends(data_b.co
         return JSONResponse(content={"ok": False, 'description': "bad event_id"},
                             status_code=_status.HTTP_400_BAD_REQUEST)
     event: Event = Event.parse_obj(event_data[0])
+    user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=event.creator_id, db=db,
+                                     name='name, middle_name, surname')
+    event.creator_name = user_data[0][0]
+    event.creator_middlename = user_data[0][1]
+    event.creator_surname = user_data[0][2]
 
     return JSONResponse(content={"ok": True,
                                  'event': event.dict()},
@@ -148,12 +164,22 @@ async def get_event_by_id(access_token: str, community_id: int, db=Depends(data_
     event_list = []
     for one in event_data:
         event: Event = Event.parse_obj(one)
+        user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=event.creator_id, db=db,
+                                         name='name, middle_name, surname')
+        event.creator_name = user_data[0][0]
+        event.creator_middlename = user_data[0][1]
+        event.creator_surname = user_data[0][2]
         event_list.append(event.dict())
 
     dead_event_data = await conn.read_dead_events(db=db, community_id=community_id)
     dead_event_list = []
     for one in dead_event_data:
         event: Event = Event.parse_obj(one)
+        user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=event.creator_id, db=db,
+                                         name='name, middle_name, surname')
+        event.creator_name = user_data[0][0]
+        event.creator_middlename = user_data[0][1]
+        event.creator_surname = user_data[0][2]
         dead_event_list.append(event.dict())
 
     return JSONResponse(content={"ok": True,
