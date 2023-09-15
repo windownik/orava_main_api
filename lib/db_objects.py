@@ -189,6 +189,9 @@ class Quiz(BaseModel):
     creator_id: int = 0
     title: str = '0'
     description: str = '0'
+    creator_name: str = '0'
+    creator_surname: str = '0'
+    creator_middlename: str = '0'
     death_time: int = 0
     death_date: int = 0
     deleted_date: int = 0

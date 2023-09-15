@@ -240,6 +240,13 @@ async def create_new_quiz(access_token: str, quiz_answer_id: int, db=Depends(dat
 async def build_quiz_json(db: Depends, quiz_data: tuple) -> json:
     quiz: Quiz = Quiz.parse_obj(quiz_data)
     quiz_questions = await conn.read_data(db=db, table='quiz_question', id_name='quiz_id', id_data=quiz.quiz_id)
+
+    user_data = await conn.read_data(table='all_users', id_name='user_id', id_data=quiz.creator_id, db=db,
+                                     name='name, middle_name, surname')
+    quiz.creator_name = user_data[0][0]
+    quiz.creator_middlename = user_data[0][1]
+    quiz.creator_surname = user_data[0][2]
+
     # Add questions list
     questions = []
     for one in quiz_questions:
