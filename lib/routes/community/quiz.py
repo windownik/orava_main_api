@@ -212,6 +212,31 @@ async def create_new_quiz(access_token: str, quiz_id: int, question_id: int, db=
                         headers={'content-type': 'application/json; charset=utf-8'})
 
 
+@app.delete(path='/quiz_answer', tags=['Quiz'], responses=create_event_res)
+async def create_new_quiz(access_token: str, quiz_answer_id: int, db=Depends(data_b.connection)):
+    """Delete quiz_answer by quiz_answer_id.\n
+    quiz_answer_id: it is quiz id\n
+    """
+
+    user_id = await conn.get_token(db=db, token_type='access', token=access_token)
+    if not user_id:
+        return JSONResponse(content={"ok": False, "description": "bad access token"},
+                            status_code=_status.HTTP_401_UNAUTHORIZED)
+
+    quiz_data = await conn.read_data(db=db, table='quiz_answer', id_name='q_id', id_data=quiz_answer_id)
+
+    if not quiz_data:
+        return Response(content="bad quiz_answer_id",
+                        status_code=_status.HTTP_400_BAD_REQUEST)
+
+    await conn.delete_where(db=db, table='quiz_answer', id_name='q_id', data=quiz_answer_id)
+
+    return JSONResponse(content={"ok": True,
+                                 'description': 'quiz answer deleted'},
+                        status_code=_status.HTTP_200_OK,
+                        headers={'content-type': 'application/json; charset=utf-8'})
+
+
 async def build_quiz_json(db: Depends, quiz_data: tuple) -> json:
     quiz: Quiz = Quiz.parse_obj(quiz_data)
     quiz_questions = await conn.read_data(db=db, table='quiz_question', id_name='quiz_id', id_data=quiz.quiz_id)
